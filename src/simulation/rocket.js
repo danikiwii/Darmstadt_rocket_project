@@ -1,18 +1,33 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-export function loadRocket(scene) {
-  const loader = new GLTFLoader();
-  loader.load(
-    'src/simulation/models/Sagitta.glb', // Ruta relativa desde la raíz del proyecto
-    (gltf) => {
-      const rocket = gltf.scene;
-      rocket.position.set(0, 0.5, 0);
-      rocket.scale.set(0.02, 0.02, 0.02); // Ajusta si es necesario
-      scene.add(rocket);
-    },
-    undefined,
-    (error) => {
-      console.error('Error cargando el modelo:', error);
+export class Rocket {
+  constructor(modelPath = 'src/simulation/models/Sagitta.glb') {
+    this.model = null;
+    this.modelPath = modelPath;
+  }
+
+  load(scene, onLoaded) {
+    const loader = new GLTFLoader();
+    loader.load(
+      this.modelPath,
+      (gltf) => {
+        this.model = gltf.scene;
+        this.model.position.set(0, 0.5, 0);
+        this.model.scale.set(0.02, 0.02, 0.02);
+        scene.add(this.model);
+        if (onLoaded) onLoaded(this.model);
+      },
+      undefined,
+      (error) => {
+        console.error('Error cargando el modelo:', error);
+      }
+    );
+  }
+
+  shake(intensity = 0.02) {
+    if (this.model) {
+      this.model.position.x += (Math.random() - 0.5) * intensity;
+      this.model.position.y += (Math.random() - 0.5) * intensity;
     }
-  );
+  }
 }

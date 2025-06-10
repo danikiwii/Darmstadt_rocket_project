@@ -6,6 +6,7 @@ export function createScene(canvas) {
   //scene (with lights and particles)
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x202030);
+  scene.fog = new THREE.FogExp2(0x202030, 0.005); // Añadir niebla para dar profundidad
   createLights(scene);
   allParticles.forEach(particle => particle.addTo(scene));  
 
