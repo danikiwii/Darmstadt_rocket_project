@@ -1,7 +1,7 @@
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 export class Rocket {
-  constructor(modelPath = 'src/simulation/models/Sagitta.glb') {
+  constructor(modelPath) {
     this.model = null;
     this.modelPath = modelPath;
   }
