@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rocket Simulation</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="simulation">
+      <!-- Aquí se monta Three.js -->
+      <canvas id="three-canvas"></canvas>
+    </div>
+    <div id="interface">
+      <h1>Rocket Data</h1>
+      <div id="charts">
+        <!-- Aquí puedes colocar gráficos, datos, etc. -->
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/simulation/main.js"></script>
+  <script type="module" src="/src/graphs/main.js"></script>
+</body>
+</html>
