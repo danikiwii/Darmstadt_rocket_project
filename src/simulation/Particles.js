@@ -71,8 +71,8 @@ const stars = new Particles({
   count: 250,
   area: 60,
   color: 0xffffff,
-  size: 0.1,
-  yRange: [-25, 20],
+  size: 0.15,
+  yRange: [-50, 50],
   velocity: 2
 });
 
