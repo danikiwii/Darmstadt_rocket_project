@@ -6,7 +6,7 @@ import {allParticles} from './Particles.js';
 const canvas = document.getElementById('three-canvas');
 const { scene, camera, renderer} = createScene(canvas);
 const controls = setupControls(camera, renderer);
-const rocket = new Rocket('src/simulation/models/Sagitta.glb',{ x: 0, y: 0.5, z: 0 });
+const rocket = new Rocket('assets/Sagitta.glb',{ x: 0, y: 0.5, z: 0 });
 
 rocket.load(scene);
 

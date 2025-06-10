@@ -1,6 +1,6 @@
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-export class Rocket {
+ export class Rocket {
   constructor(modelPath, initialPosition = { x: 0, y: 0.5, z: 0 }) {
     this.model = null;
     this.modelPath = modelPath;
