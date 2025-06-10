@@ -24,10 +24,11 @@ export class Rocket {
     );
   }
 
-  shake(intensity = 0.02) {
+  shake(intensity) {
     if (this.model) {
-      this.model.position.x += (Math.random() - 0.5) * intensity;
+      this.model.position.x += (Math.random() - 0.49) * intensity/2;
       this.model.position.y += (Math.random() - 0.5) * intensity;
+      this.model.position.z += (Math.random() - 0.51) * intensity/2;
     }
   }
 }

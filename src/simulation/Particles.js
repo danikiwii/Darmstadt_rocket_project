@@ -93,6 +93,19 @@ const rocketParticles_yellow = new Particles({
   yRange: [-4, -3.75 ],
   velocity: 0.005,
 });
+const rocketParticles_gray = new Particles({
+  count: 20,
+  area: 0.25,
+  color: 0xCCCCCC, // Gris medio
+  size: 0.15,
+  yRange: [-10, -3.75],
+  velocity: 0.01,
+});
 
-export const allParticles = [stars, rocketParticles_orange, rocketParticles_yellow];
+export const allParticles = [
+  stars, 
+  rocketParticles_orange, 
+  rocketParticles_yellow,
+  rocketParticles_gray
+];
 // Combine the orange and yellow particles into a single object
