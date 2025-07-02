@@ -50,4 +50,11 @@
       }
     }
   }
+  stTilt(pitch = 0., yaw = 0, roll = 0.) {
+    if (this.model) {
+      this.model.rotation.x = pitch;
+      this.model.rotation.y = roll; 
+      this.model.rotation.z = yaw;
+    }
+  }
 }
