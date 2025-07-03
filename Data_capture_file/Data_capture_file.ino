@@ -1,7 +1,6 @@
-
 /*
- * Rocket Data Logger for ESP32-S3 con GPS y Giroscopio
- * Incluye: acelerómetro, giroscopio, presión, altitud, temperatura, latitud y longitud
+ * Rocket Data Logger for ESP32-S3 with GPS and Gyroscope
+ * Collects: acceleration, gyroscope, pressure, altitude, temperature, latitude, longitude
  */
 
 #include <Arduino.h>
@@ -13,7 +12,7 @@
 #include <SensorQMI8658.hpp>
 #include <Adafruit_GPS.h>
 
-// Pines
+// Pin definitions
 #define TFT_CS        7
 #define TFT_DC        39
 #define TFT_RST       40
@@ -26,20 +25,20 @@
 #define BMP_Addr      0x77
 #define QMI_Addr      0x6B
 
-// Constantes
+// Constants
 const float SEA_LEVEL_PRESSURE_HPA = 1013.25;
 const unsigned int MAX_DATA_POINTS = 2000;
 const unsigned int SAMPLE_RATE_HZ = 10;
 const unsigned int SAMPLE_INTERVAL_US = 1000000 / SAMPLE_RATE_HZ;
-const float LAUNCH_THRESHOLD = 2.0;
+const float LAUNCH_THRESHOLD = 2.0; // 2G threshold
 
-// Objetos de sensores
+// Sensor objects
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 Adafruit_BMP280 bmp;
 SensorQMI8658 qmi;
 Adafruit_GPS gps(&Wire);
 
-// Estructura de datos
+// Data structure for each sample
 struct SensorData {
   unsigned long timestamp;
   float acceleration[3];
@@ -56,7 +55,7 @@ volatile unsigned int dataIndex = 0;
 volatile bool launchDetected = false;
 volatile bool recordingComplete = false;
 
-// Inicialización de pantalla
+// Initialize display
 void initDisplay() {
   pinMode(TFT_backlight, OUTPUT);
   digitalWrite(TFT_backlight, HIGH);
@@ -68,7 +67,7 @@ void initDisplay() {
   tft.println("Rocket Logger");
 }
 
-// Inicialización de sensores
+// Initialize BMP280
 void initBMP() {
   if (!bmp.begin(BMP_Addr)) {
     tft.setCursor(0, 20);
@@ -77,6 +76,7 @@ void initBMP() {
   }
 }
 
+// Initialize QMI8658
 void initQMI() {
   if (!qmi.begin(Wire, QMI_Addr, I2C_SDA, I2C_SCL)) {
     tft.setCursor(0, 40);
@@ -87,20 +87,21 @@ void initQMI() {
   qmi.enableAccelerometer();
 }
 
+// Initialize GPS
 void initGPS() {
-  gps.begin(0x10); // Dirección I2C del PA1010D
+  gps.begin(0x10); // I2C address of PA1010D
   gps.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   gps.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
   delay(1000);
 }
 
-// Detección de lanzamiento
+// Detect launch based on vertical acceleration
 bool detectLaunch(float currentAccel) {
   static float baselineAccel = 1.0;
   return (currentAccel > baselineAccel * LAUNCH_THRESHOLD);
 }
 
-// Mostrar estado en pantalla
+// Display current status on screen
 void displayStatus() {
   tft.setTextSize(1);
   tft.setCursor(0, 100);
@@ -112,7 +113,7 @@ void displayStatus() {
   tft.printf("Samples: %d/%d\n", dataIndex, MAX_DATA_POINTS);
 }
 
-// Exportar datos como JSON
+// Output all recorded data as JSON
 void dumpDataToSerial() {
   Serial.println("{\"flight_data\": [");
   for (int i = 0; i < dataIndex; i++) {
@@ -136,7 +137,7 @@ void dumpDataToSerial() {
   Serial.println("]}");
 }
 
-// Setup
+// Setup function
 void setup() {
   Serial.begin(115200);
   while (!Serial);
@@ -151,7 +152,7 @@ void setup() {
   tft.println("Waiting for launch...");
 }
 
-// Loop principal
+// Main loop
 void loop() {
   static unsigned long lastSampleTime = 0;
   unsigned long currentTime = micros();
