@@ -1,10 +1,10 @@
  import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
  export class Rocket {
-  constructor(modelPath, initialPosition = { x: 0, y: 0.5, z: 0 }) {
+  constructor(modelPath) {
     this.model = null;
     this.modelPath = modelPath;
-    this.initialPosition = initialPosition;
+    this.initialPosition = { x: 0, y: 0, z: 0 };
   }
 
   load(scene, onLoaded) {
@@ -50,11 +50,11 @@
       }
     }
   }
-  stTilt(pitch = 0., yaw = 0, roll = 0.) {
+  stTilt(rotation) {
     if (this.model) {
-      this.model.rotation.x = pitch;
-      this.model.rotation.y = roll; 
-      this.model.rotation.z = yaw;
+      this.model.rotation.x = rotation.pitch;
+      this.model.rotation.y = rotation.roll; 
+      this.model.rotation.z = rotation.yaw;
     }
   }
 }
