@@ -1,32 +1,40 @@
-# rocket_data_processor.py
+#Start the process
 
+#Needed imports
 import numpy as np
 import math
 import json
 import os
 
-# Constantes
-EARTH_RADIUS = 6371000  # en metros
-SEA_LEVEL_PRESSURE = 1013.25  # en hPa
+# Constants
 
-# Calcular altitud barométrica
+EARTH_RADIUS = 6371000  # In meters
+SEA_LEVEL_PRESSURE = 1013.25  # In hPa
+
+#Calculate barometric altitude
 def baro_altitude(p, p0=SEA_LEVEL_PRESSURE):
+
     return 44330 * (1 - (p / p0) ** 0.190294957)
 
-# Calcular distancia Haversine
+#Calculate haversine distance
 def haversine(lat1, lon1, lat2, lon2):
+
     dphi = math.radians(lat2 - lat1)
     dl = math.radians(lon2 - lon1)
     a = math.sin(dphi / 2) ** 2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dl / 2) ** 2
+
     return 2 * EARTH_RADIUS * math.asin(math.sqrt(a))
 
-# Validar que una muestra tenga todos los campos necesarios
+#Function to check that there are all the parameters needed
 def validate_sample(sample):
+
     required = {"t", "lat", "lon", "pressure", "ax", "ay", "az", "gx", "gy", "gz"}
+
     return required.issubset(sample)
 
-# Procesar los datos
+# Process the data
 def process(samples):
+
     samples = [s for s in samples if validate_sample(s)]
     samples.sort(key=lambda d: d["t"])
     n = len(samples)
@@ -35,6 +43,7 @@ def process(samples):
     h = np.zeros(n)
 
     for i, d in enumerate(samples):
+
         h[i] = baro_altitude(d["pressure"])
         if i:
             dt = d["t"] - samples[i - 1]["t"]
@@ -48,7 +57,9 @@ def process(samples):
     pitch = np.zeros(n)
     yaw = np.zeros(n)
     k = 0.98
+
     for i, d in enumerate(samples):
+
         ax, ay, az = d["ax"], d["ay"], d["az"]
         if i:
             dt = d["t"] - samples[i - 1]["t"]
@@ -61,8 +72,9 @@ def process(samples):
 
     return {"v": v, "h": h, "a": a, "pitch": pitch, "roll": roll, "yaw": yaw}
 
-# Cargar muestras desde archivo JSON
+# Load the samples of the data from the JSON
 def load_samples(path):
+
     try:
         with open(path, "r") as f:
             return json.load(f)
@@ -70,7 +82,7 @@ def load_samples(path):
         print(f"Error al cargar datos: {e}")
         return []
 
-# Guardar resultados en archivo JSON
+# Save the results to the JSON
 def save_results(results, path):
     try:
         with open(path, "w") as f:
@@ -79,12 +91,19 @@ def save_results(results, path):
     except Exception as e:
         print(f"Error al guardar resultados: {e}")
 
-# Ejecución principal
+#Main Function
 if __name__ == "__main__":
-    input_file = "rocket_flight_data.json"
-    output_file = "resultado.json"
 
+    #Input File which is the rocket flight data in JSON format
+    input_file = "rocket_flight_data.json"
+
+    #Result file which is the result.json
+    output_file = "result.json"
+
+    #Load the samples
     samples = load_samples(input_file)
+
+    #If the samples exists just process the data and save the results in the output file.
     if samples:
         results = process(samples)
         save_results(results, output_file)
