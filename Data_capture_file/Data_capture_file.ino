@@ -89,7 +89,7 @@ void initQMI() {
 
 // Initialize GPS
 void initGPS() {
-  gps.begin(0x10); // I2C address of PA1010D
+  gps.begin(0x10); // I2C address of PA1010D (verifica que sea correcto)
   gps.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
   gps.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
   delay(1000);
@@ -166,8 +166,11 @@ void loop() {
     if (!qmi.getGyroscope(gx, gy, gz)) return;
 
     gps.read();
-    float lat = gps.latitudeDegrees;
-    float lon = gps.longitudeDegrees;
+    float lat = 0.0, lon = 0.0;
+    if (gps.fix) {
+      lat = gps.latitudeDegrees;
+      lon = gps.longitudeDegrees;
+    }
 
     float pressure = bmp.readPressure() / 100.0F;
     float altitude = bmp.readAltitude(SEA_LEVEL_PRESSURE_HPA);
@@ -216,3 +219,4 @@ void loop() {
     while (1);
   }
 }
+  
