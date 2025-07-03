@@ -7,13 +7,12 @@ SERIAL_PORT = 'COM3'       # Replace with your actual serial port (e.g., '/dev/t
 BAUD_RATE = 115200         # Must match the baud rate used by the ESP32
 OUTPUT_FILE = 'rocket_flight_data.json'  # Output file where the JSON data will be saved
 
-# Function to capture JSON data sent over serial and save it to a file
+# Function to capture JSON object sent over serial and save it to a file
 def capture_json_from_serial(port, baudrate, output_file):
-    # Open the serial port
     with serial.Serial(port, baudrate, timeout=1) as ser:
         print(f"Listening on {port} at {baudrate} baud...")
         buffer = ""           # Buffer to accumulate the JSON text
-        capturing = False     # Flag to indicate whether we're inside a JSON block
+        capturing = False     # Flag to indicate whether we're inside a JSON object
 
         while True:
             # Read a line from the serial port
@@ -22,18 +21,19 @@ def capture_json_from_serial(port, baudrate, output_file):
             if not line:
                 continue  # Skip empty lines
 
-            # Detect the start of the JSON array
-            if line.startswith('['):
+            # Detect the start of the JSON object
+            if line.startswith('{') and not capturing:
                 capturing = True
                 buffer = line + '\n'
-                print("Start of JSON block detected")
+                print("Start of JSON object detected")
 
-            # Detect the end of the JSON array
-            elif line.startswith(']') and capturing:
+            # Detect the end of the JSON object
+            elif line.startswith('}') and capturing:
                 buffer += line
-                print("End of JSON block detected")
-                break  # Exit the loop once the full JSON block is received
-            # Accumulate lines inside the JSON block
+                print("End of JSON object detected")
+                break  # Exit the loop once the full JSON object is received
+
+            # Accumulate lines inside the JSON object
             elif capturing:
                 buffer += line + '\n'
 
