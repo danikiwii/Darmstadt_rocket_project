@@ -16,9 +16,14 @@
       <h1>Rocket Data</h1>
       <div id="charts">
         <!-- Aquí puedes colocar gráficos, datos, etc. -->
+        <canvas id="velocityChart" width="400" height="200"></canvas>
+        <canvas id="attitudeChart" width="400" height="100" style="margin-top: 2rem;"></canvas>
+        <canvas id="powerChart" width="400" height="100" style="margin-top: 2rem;"></canvas>
       </div>
     </div>
   </div>
+  <!-- Carga Chart.js como script global UMD antes de tus módulos -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script type="importmap">
 {
   "imports": {
