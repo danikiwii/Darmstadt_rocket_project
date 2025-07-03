@@ -41,7 +41,18 @@ html, body {
 
 #charts {
   width: 100%;
-  min-height: 300px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+#charts canvas {
+  width: 100% !important;
+  height: 33vh !important;
+  min-height: 0;
+  margin-bottom: 0.5rem;
+  box-sizing: border-box;
 }
 
 #three-canvas {

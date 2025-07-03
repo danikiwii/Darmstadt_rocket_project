@@ -38,7 +38,10 @@ export class AnimatedLineChart {
         animation: false,
         elements: { point: { radius: 0 } },
         scales: {
-          x: { title: { display: true, text: 'Tiempo (s)' } },
+          x: {
+            title: { display: false }, // Oculta la leyenda del eje X
+            ticks: { display: false }  // Oculta los números del eje X
+          },
           y: { title: { display: true, text: labels[0] } }
         }
       }
