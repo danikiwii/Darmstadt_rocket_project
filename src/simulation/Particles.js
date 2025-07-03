@@ -115,4 +115,4 @@ export const allParticles = [
   rocketParticles_yellow,
   rocketParticles_gray
 ];
-// Combine the orange and yellow particles into a single object
+// Combine the  stars orange and yellow particles into a single object

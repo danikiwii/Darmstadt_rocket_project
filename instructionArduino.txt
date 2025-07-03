@@ -1,0 +1,9 @@
+1 choose board
+2 choose port
+3 button combo
+4 load program
+5 press reset
+5 choose new port
+
+
+gps module: https://www.adafruit.com/product/4415
