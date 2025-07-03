@@ -114,21 +114,26 @@ void displayStatus() {
 }
 
 void dumpDataToSerial() {
-  Serial.println("BEGIN_DATA_DUMP");
-  Serial.println("Timestamp(us),AccX(g),AccY(g),AccZ(g),Pressure(hPa),Altitude(m),Temp(C)");
+  Serial.println("{\"flight_data\": [");
   
   for (int i = 0; i < dataIndex; i++) {
-    Serial.printf("%lu,%.3f,%.3f,%.3f,%.2f,%.2f,%.2f\n",
-                 flightData[i].timestamp,
+    Serial.printf("  {\"timestamp\": %lu,", flightData[i].timestamp);
+    Serial.printf("\"acceleration\": {\"x\": %.3f, \"y\": %.3f, \"z\": %.3f},", 
                  flightData[i].acceleration[0],
                  flightData[i].acceleration[1],
-                 flightData[i].acceleration[2],
-                 flightData[i].pressure,
-                 flightData[i].altitude,
-                 flightData[i].temperature);
+                 flightData[i].acceleration[2]);
+    Serial.printf("\"pressure\": %.2f,", flightData[i].pressure);
+    Serial.printf("\"altitude\": %.2f,", flightData[i].altitude);
+    Serial.printf("\"temperature\": %.2f}", flightData[i].temperature);
+    
+    if (i < dataIndex - 1) {
+      Serial.println(",");
+    } else {
+      Serial.println();
+    }
   }
   
-  Serial.println("END_DATA_DUMP");
+  Serial.println("]}");
 }
 
 void setup() {
