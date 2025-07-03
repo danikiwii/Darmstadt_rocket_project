@@ -41,23 +41,31 @@ def process(samples):
     samples.sort(key=lambda d: d["timestamp"])
     n = len(samples)
 
+    if n == 0:
+        return {}
+
     v = np.zeros(n)  # Horizontal velocity
     h = np.zeros(n)  # Barometric altitude
+    time_array = np.array([s["timestamp"] / 1e6 for s in samples])
 
     # Compute altitude and velocity
     for i, d in enumerate(samples):
         h[i] = baro_altitude(d["pressure"])
         if i:
-            dt = (d["timestamp"] - samples[i - 1]["timestamp"]) / 1e6  # Convert µs to seconds
-            dx = haversine(
-                samples[i - 1]["latitude"], samples[i - 1]["longitude"],
-                d["latitude"], d["longitude"]
-            )
-            v[i] = dx / dt if dt else 0
+            dt = (d["timestamp"] - samples[i - 1]["timestamp"]) / 1e6
+            if dt > 0:
+                dx = haversine(
+                    samples[i - 1]["latitude"], samples[i - 1]["longitude"],
+                    d["latitude"], d["longitude"]
+                )
+                v[i] = dx / dt
+            else:
+                v[i] = v[i - 1]
 
     # Compute acceleration from velocity
-    time_array = [s["timestamp"] / 1e6 for s in samples]
-    a = np.gradient(v, np.diff(time_array, prepend=time_array[0]))
+    time_diffs = np.diff(time_array, prepend=time_array[0])
+    time_diffs[time_diffs == 0] = 1e-6  # Avoid division by zero
+    a = np.gradient(v, time_diffs)
 
     # Orientation estimation using complementary filter
     roll = np.zeros(n)
@@ -65,20 +73,26 @@ def process(samples):
     yaw = np.zeros(n)
     k = 0.98  # Complementary filter constant
 
-    for i, d in enumerate(samples):
-        ax, ay, az = d["acceleration"]["x"], d["acceleration"]["y"], d["acceleration"]["z"]
-        if i:
-            dt = (d["timestamp"] - samples[i - 1]["timestamp"]) / 1e6
-            gx, gy, gz = map(math.radians, (
-                d["gyroscope"]["x"], d["gyroscope"]["y"], d["gyroscope"]["z"]
-            ))
-            roll_acc = math.degrees(math.atan2(ay, az))
-            pitch_acc = math.degrees(math.atan2(-ax, math.sqrt(ay**2 + az**2)))
-            roll[i] = k * (roll[i - 1] + gx * dt) + (1 - k) * roll_acc
-            pitch[i] = k * (pitch[i - 1] + gy * dt) + (1 - k) * pitch_acc
-            yaw[i] = (yaw[i - 1] + gz * dt) % 360
+    # Initialize orientation from first sample
+    ax0, ay0, az0 = samples[0]["acceleration"].values()
+    roll[0] = math.degrees(math.atan2(ay0, az0))
+    pitch[0] = math.degrees(math.atan2(-ax0, math.sqrt(ay0**2 + az0**2)))
+    yaw[0] = 0.0
+
+    for i in range(1, n):
+        dt = (samples[i]["timestamp"] - samples[i - 1]["timestamp"]) / 1e6
+        gx, gy, gz = map(math.radians, (
+            samples[i]["gyroscope"]["x"], samples[i]["gyroscope"]["y"], samples[i]["gyroscope"]["z"]
+        ))
+        ax, ay, az = samples[i]["acceleration"]["x"], samples[i]["acceleration"]["y"], samples[i]["acceleration"]["z"]
+        roll_acc = math.degrees(math.atan2(ay, az))
+        pitch_acc = math.degrees(math.atan2(-ax, math.sqrt(ay**2 + az**2)))
+        roll[i] = k * (roll[i - 1] + gx * dt) + (1 - k) * roll_acc
+        pitch[i] = k * (pitch[i - 1] + gy * dt) + (1 - k) * pitch_acc
+        yaw[i] = (yaw[i - 1] + gz * dt) % 360
 
     return {
+        "timestamp": time_array.tolist(),
         "velocity": v.tolist(),
         "altitude": h.tolist(),
         "acceleration": a.tolist(),
