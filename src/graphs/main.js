@@ -1,4 +1,5 @@
 import {AnimatedLineChart } from './graphs.js';
+import { AltitudeBar } from './heightBar.js';
 // Cargar los datos de vuelo y crear los tres gráficos
 fetch('../../data/rocket_flight_data.json')
   .then(res => res.json())
@@ -13,6 +14,7 @@ fetch('../../data/rocket_flight_data.json')
       columns.forEach((col, i) => { obj[col] = row[i]; });
       return obj;
     });
+
     // Gráfico 1: velocidad y aceleración
     new AnimatedLineChart(
       'velocityChart',
@@ -37,4 +39,10 @@ fetch('../../data/rocket_flight_data.json')
       ['Potencia (N)'],
       ['rgb(255,205,86)']
     );
-  });
+
+    // Gráfico 4: Altitud
+    bar = new AltitudeBar(  
+      dataList,
+      {}
+    );
+  })
