@@ -3,7 +3,7 @@ import * as THREE from 'three';
 //-----------------------------DEFINING THE PARICLES CLASS
 
 
-class Particles {
+export class Particles {
   constructor({
     count = 200,
     area = 60,
@@ -11,6 +11,8 @@ class Particles {
     size = 0.1,
     yRange = [5, 15],
     speedRatio = 0.3,
+    dataList = null,
+    animateSpeed = 30
   } = {}) {
     this.count = count;
     this.area = area;
@@ -34,16 +36,33 @@ class Particles {
     );
     this.material = new THREE.PointsMaterial({ color, size });
     this.points = new THREE.Points(this.geometry, this.material);
+
+    // Para animación basada en dataList
+    this.dataList = dataList;
+    this.animateSpeed = animateSpeed;
+    this.i=0;
+    this.animate();
   }
 
   addTo(scene) {
     scene.add(this.points);
   }
 
-  animate(speed, rotation) {
+  animate() {
+    // Lógica similar a animateChart de los gráficos: avanza un frame cada animateSpeed ms
+    if (!this.dataList || this.i >= this.dataList.length) return;
+    const frame = this.dataList[this.i];
+    const speed = frame.velocity || frame.speed || 0;
+    const rotation = {
+      pitch: frame.pitch || 0,
+      yaw: frame.yaw || 0,
+      roll: frame.roll || 0
+    };
     this.changePosition(speed);
-    this.setGroupRotation(rotation); 
-    }
+    this.setGroupRotation(rotation);
+    this.i++;
+    setTimeout(() => this.animate(), this.animateSpeed);
+  }
 
   changePosition(speed) {
     const positions = this.geometry.attributes.position.array;
@@ -75,44 +94,3 @@ class Particles {
 
 //---------------------------------------------------INSTANCIATE THE PARTICLES
 
-const stars = new Particles({
-  count: 250,
-  area: 60,
-  color: 0xffffff,
-  size: 0.15,
-  yRange: [-50, 50],
-  speedRatio: 2
-});
-
-const rocketParticles_orange = new Particles({
-  count: 10,
-  area: 0.5,
-  color: 0xffa500,
-  size: 0.15,
-  yRange: [-5, -4.25 ],
-  speedRatio: 0.002,
-});
-const rocketParticles_yellow = new Particles({
-  count: 10,
-  area: 0.5,
-  color: 0xFFD580,
-  size: 0.15,
-  yRange: [-6, -4.25 ],
-  speedRatio: 0.002,
-});
-const rocketParticles_gray = new Particles({
-  count: 20,
-  area: 0.25,
-  color: 0xCCCCCC, // Gris medio
-  size: 0.15,
-  yRange: [-10, -4.25],
-  speedRatio: 0.003,
-});
-
-export const allParticles = [
-  stars, 
-  rocketParticles_orange, 
-  rocketParticles_yellow,
-  rocketParticles_gray
-];
-// Combine the  stars orange and yellow particles into a single object
