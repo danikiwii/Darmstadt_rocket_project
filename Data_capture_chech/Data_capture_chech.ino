@@ -1,5 +1,5 @@
 /*
- * Enhanced Rocket Data Logger for ESP32-S3
+ * Enhanced Rocket Data Logger for ESP32-S3 aaa
  * Features:
  * - 5Hz GPS sampling (PA1010D)
  * - Launch detection (2G threshold)
