@@ -7,3 +7,10 @@
 
 
 gps module: https://www.adafruit.com/product/4415
+
+
+
+TO DO LIST -----------------------------------------------------
+
+Take off condition
+Land condition
