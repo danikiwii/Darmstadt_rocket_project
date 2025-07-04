@@ -47,10 +47,12 @@ export class AnimatedLineChart {
       }
     });
     this.i = 0;
-    this.animateChart();
+    this.animateChart(); // la funcion se autollama. Añade el siguiente punto cada vez
   }
 
   animateChart() {
+    const animateSpeed =30 ; // Ajusta la velocidad de animación aquí. segundos de actualizacion
+    // Si hay más datos, añade el siguiente punto al gráfico
     if (this.i < this.dataList.length) {
       this.chart.data.labels.push(this.dataList[this.i].time);
       this.fields.forEach((field, idx) => {
@@ -58,7 +60,7 @@ export class AnimatedLineChart {
       });
       this.chart.update();
       this.i++;
-      setTimeout(() => this.animateChart(), 30);
+      setTimeout(() => this.animateChart(), animateSpeed);
     }
   }
 }
