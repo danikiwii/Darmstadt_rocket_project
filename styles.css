@@ -29,11 +29,11 @@ html, body {
 }
 
 #interface {
-  flex: 1.5; /* Aumenta el tamaño de la parte derecha */
+  flex: 2;
   background: #222;
   color: #fff;
-  padding: 2rem 1.5rem;
-  min-width: 350px;
+  padding: 2rem 2.5rem;
+  min-width: 420px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -43,9 +43,11 @@ html, body {
 #charts {
   width: 100%;
   height: 100%;
+  max-height: 95vh;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  align-items: stretch;
+  overflow-y: auto;
   padding-left: 2.5rem;
   padding-right: 2.5rem;
   box-sizing: border-box;
@@ -53,9 +55,9 @@ html, body {
 
 #charts canvas {
   width: 100% !important;
-  height: 33vh !important;
-  min-height: 0;
-  margin-bottom: 0.5rem;
+  height: 320px !important;
+  min-height: 200px;
+  margin-bottom: 3.5rem;
   box-sizing: border-box;
 }
 
