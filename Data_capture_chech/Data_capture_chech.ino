@@ -182,6 +182,7 @@ void loop() {
       tft.fillScreen(ST77XX_BLACK);
       tft.setCursor(0, 0);
       tft.println("LAUNCH DETECTED!");
+      Serial.println("LAUNCH DETECTED!");
     }
 
     if (launchDetected || dataIndex < MAX_DATA_POINTS) {
@@ -218,5 +219,7 @@ void loop() {
     dumpDataToSerial();
     while (1);
   }
+
+
 }
   
