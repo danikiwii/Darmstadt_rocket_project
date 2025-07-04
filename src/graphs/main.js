@@ -4,14 +4,14 @@ import { AltitudeBar } from './heightBar.js';
 fetch('../../data/rocket_flight_data.json')
   .then(res => res.json())
   .then(json => {
-    const columns = json.columns;
-    //Convertir los datos a una lista de objetos
-    // Cada objeto es un diccionario con las columnas como claves
-    // y los valores correspondientes de cada fila
-    //DataList es una lista de objetos
-    const dataList = json.data.map(row => {
-      let obj = {};
-      columns.forEach((col, i) => { obj[col] = row[i]; });
+    // Convertir el nuevo formato (columnas como arrays) a lista de objetos por fila
+    const keys = Object.keys(json);
+    const length = json[keys[0]].length;
+    const dataList = Array.from({length}, (_, i) => {
+      const obj = {};
+      for (const key of keys) {
+        obj[key] = json[key][i];
+      }
       return obj;
     });
 
