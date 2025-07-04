@@ -17,6 +17,7 @@ html, body {
   display: flex;
   flex-direction: row;
   height: 100vh;
+  position: relative;
 }
 
 #simulation {
@@ -45,6 +46,9 @@ html, body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+  box-sizing: border-box;
 }
 
 #charts canvas {
@@ -60,4 +64,62 @@ html, body {
   height: 100%;
   display: block;
   background: #000;
+}
+
+
+#altitude-bar-container {
+  position: absolute;
+  left: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 60px;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  background: rgba(30,30,30,0.2);
+  border-radius: 16px;
+  box-shadow: 0 0 8px #00c3ff33;
+}
+
+
+#altitude-bar {
+  width: 24px;
+  height: 160px;
+  background: #222;
+  border-radius: 10px;
+  box-shadow: 0 0 8px #00c3ff99;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  overflow: hidden;
+  position: relative;
+}
+
+#altitude-bar-fill {
+  width: 100%;
+  background: linear-gradient(to top, #00c3ff, #ffff1c);
+  border-radius: 10px 10px 0 0;
+  transition: height 0.2s;
+  box-shadow: 0 0 8px #00c3ff99;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 20px; /* valor inicial, se actualizará por JS */
+  min-height: 20px;
+  max-height: 160px;
+}
+
+
+#altitude-label {
+  width: 100%;
+  margin-top: 8px;
+  text-align: center;
+  color: #fff;
+  font-size: 1rem;
+  text-shadow: 0 0 4px #000;
+  position: static;
 }
