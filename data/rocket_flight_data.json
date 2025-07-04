@@ -7,8 +7,7 @@
       "roll": 0.00,
       "altitude": 0.00,
       "velocity": 0.00,
-      "acceleration": 60.0,
-      "thrust": 12.0
+      "acceleration": 60.0
     },
     {
       "timestamp": 0.01,
@@ -17,8 +16,7 @@
       "roll": 0.00,
       "altitude": 0.003,
       "velocity": 0.06,
-      "acceleration": 60.0,
-      "thrust": 12.0
+      "acceleration": 60.0
     },
     {
       "timestamp": 0.02,
@@ -27,8 +25,7 @@
       "roll": 0.00,
       "altitude": 0.012,
       "velocity": 0.12,
-      "acceleration": 60.0,
-      "thrust": 12.0
+      "acceleration": 60.0
     },
     {
       "timestamp": 0.03,
@@ -37,8 +34,7 @@
       "roll": 0.00,
       "altitude": 0.027,
       "velocity": 0.18,
-      "acceleration": 60.0,
-      "thrust": 12.0
+      "acceleration": 60.0
     },
     {
       "timestamp": 0.04,
@@ -47,8 +43,7 @@
       "roll": 0.00,
       "altitude": 0.048,
       "velocity": 0.24,
-      "acceleration": 60.0,
-      "thrust": 12.0
+      "acceleration": 60.0
     },
     {
       "timestamp": 0.05,
@@ -57,8 +52,7 @@
       "roll": 0.00,
       "altitude": 0.075,
       "velocity": 0.30,
-      "acceleration": 60.0,
-      "thrust": 12.0
+      "acceleration": 60.0
     },
     {
       "timestamp": 0.06,
@@ -67,8 +61,7 @@
       "roll": 0.00,
       "altitude": 0.108,
       "velocity": 0.36,
-      "acceleration": 60.0,
-      "thrust": 12.0
+      "acceleration": 60.0
     },
     {
       "timestamp": 0.07,
@@ -77,8 +70,7 @@
       "roll": 0.00,
       "altitude": 0.147,
       "velocity": 0.42,
-      "acceleration": 60.0,
-      "thrust": 12.0
+      "acceleration": 60.0
     },
     {
       "timestamp": 0.08,
@@ -87,8 +79,7 @@
       "roll": 0.00,
       "altitude": 0.192,
       "velocity": 0.48,
-      "acceleration": 60.0,
-      "thrust": 12.0
+      "acceleration": 60.0
     },
     {
       "timestamp": 0.09,
@@ -97,8 +88,7 @@
       "roll": 0.00,
       "altitude": 0.243,
       "velocity": 0.54,
-      "acceleration": 60.0,
-      "thrust": 12.0
+      "acceleration": 60.0
     },
     {
       "timestamp": 0.10,
@@ -107,8 +97,7 @@
       "roll": 0.00,
       "altitude": 0.30,
       "velocity": 0.60,
-      "acceleration": 60.0,
-      "thrust": 12.0
+      "acceleration": 60.0
     },
     {
       "timestamp": 0.20,
@@ -117,8 +106,7 @@
       "roll": 0.00,
       "altitude": 1.20,
       "velocity": 1.20,
-      "acceleration": 60.0,
-      "thrust": 12.0
+      "acceleration": 60.0
     },
     {
       "timestamp": 0.50,
@@ -127,8 +115,7 @@
       "roll": 0.00,
       "altitude": 4.50,
       "velocity": 3.00,
-      "acceleration": 60.0,
-      "thrust": 12.0
+      "acceleration": 60.0
     },
     {
       "timestamp": 1.00,
@@ -137,8 +124,7 @@
       "roll": 0.01,
       "altitude": 12.0,
       "velocity": 6.00,
-      "acceleration": 40.0,
-      "thrust": 8.0
+      "acceleration": 40.0
     },
     {
       "timestamp": 1.50,
@@ -147,8 +133,7 @@
       "roll": 0.01,
       "altitude": 19.5,
       "velocity": 5.00,
-      "acceleration": 20.0,
-      "thrust": 4.0
+      "acceleration": 20.0
     },
     {
       "timestamp": 2.00,
@@ -157,8 +142,7 @@
       "roll": 0.01,
       "altitude": 25.0,
       "velocity": 2.00,
-      "acceleration": 0.0,
-      "thrust": 0.0
+      "acceleration": 0.0
     },
     {
       "timestamp": 2.10,
@@ -167,8 +151,7 @@
       "roll": 0.01,
       "altitude": 25.2,
       "velocity": 1.00,
-      "acceleration": -9.8,
-      "thrust": 0.0
+      "acceleration": -9.8
     },
     {
       "timestamp": 2.50,
@@ -177,8 +160,7 @@
       "roll": 0.01,
       "altitude": 24.0,
       "velocity": -2.00,
-      "acceleration": -9.8,
-      "thrust": 0.0
+      "acceleration": -9.8
     },
     {
       "timestamp": 3.00,
@@ -187,8 +169,7 @@
       "roll": 0.01,
       "altitude": 19.5,
       "velocity": -5.00,
-      "acceleration": -9.8,
-      "thrust": 0.0
+      "acceleration": -9.8
     },
     {
       "timestamp": 4.00,
@@ -197,8 +178,7 @@
       "roll": 0.01,
       "altitude": 7.0,
       "velocity": -8.00,
-      "acceleration": -9.8,
-      "thrust": 0.0
+      "acceleration": -9.8
     },
     {
       "timestamp": 5.00,
@@ -207,8 +187,7 @@
       "roll": 0.00,
       "altitude": 0.0,
       "velocity": 0.0,
-      "acceleration": 0.0,
-      "thrust": 0.0
+      "acceleration": 0.0
     }
   ]
 }
