@@ -1,7 +1,7 @@
 import {AnimatedLineChart } from './graphs.js';
 import { AltitudeBar } from './heightBar.js';
 // Cargar los datos de vuelo y crear los tres gráficos
-fetch('../../data/rocket_flight_data.json')
+fetch('../../data/result.json')
   .then(res => res.json())
   .then(json => {
     // Convertir el nuevo formato (columnas como arrays) a lista de objetos por fila
@@ -15,34 +15,50 @@ fetch('../../data/rocket_flight_data.json')
       return obj;
     });
 
-    // Gráfico 1: velocidad y aceleración
-    new AnimatedLineChart(
-      'velocityChart',
+    const animationSpeed = 100; // Velocidad de animación en milisegundos
+
+    // Chart 1: Speed
+    const velocityChart = new AnimatedLineChart(
+      'speedChart',
       dataList,
-      ['velocity', 'acceleration'],
-      ['Velocidad (m/s)', 'Aceleración (m/s²)'],
-      ['rgb(75,192,192)', 'rgb(255,99,132)']
+      ['velocity'],
+      ['Speed (m/s)'],
+      ['rgb(75,192,192)'],
+      animationSpeed
     );
-    // Gráfico 2: pitch, yaw, roll
-    new AnimatedLineChart(
-      'attitudeChart',
+    // Chart 2: Acceleration
+    const accelerationChart = new AnimatedLineChart(
+      'accelerationChart',
+      dataList,
+      ['acceleration'],
+      ['Acceleration (m/s²)'],
+      ['rgb(255,99,132)'],
+      animationSpeed
+
+    );
+    // Chart 3: Pitch, Yaw, Roll
+    const rotationChart = new AnimatedLineChart(
+      'rotationChart',
       dataList,
       ['pitch', 'yaw', 'roll'],
       ['Pitch (rad)', 'Yaw (rad)', 'Roll (rad)'],
-      ['rgb(153,102,255)', 'rgb(54,162,235)', 'rgb(201,203,207)']
+      ['rgb(153,102,255)', 'rgb(54,162,235)', 'rgb(201,203,207)'],
+      animationSpeed
     );
-    // Gráfico 3: thrust (potencia)
-    new AnimatedLineChart(
-      'powerChart',
+    // Chart 4: Altitude
+    const altitudeChart = new AnimatedLineChart(
+      'altitudeChart',
       dataList,
-      ['thrust'],
-      ['Potencia (N)'],
-      ['rgb(255,205,86)']
+      ['altitude'],
+      ['Altitude (m)'],
+      ['rgb(255,205,86)'],
+      animationSpeed
     );
-
-    // Gráfico 4: Altitud
-    bar = new AltitudeBar(  
+     // Atitude Bar
+    const bar = new AltitudeBar(  
       dataList,
-      {}
+      animationSpeed
     );
   })
+
+  

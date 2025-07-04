@@ -1,14 +1,16 @@
 
 
 export class AltitudeBar {
-  constructor(dataList, options = {}) {
+  constructor(dataList, animateSpeed = 30) {
     this.dataList = dataList;
-    this.maxAltitude = options.maxAltitude || Math.max(...dataList.map(d => d.altitude));
-    this.altitudeBar = document.getElementById(options.barId || 'altitude-bar');
-    this.altitudeLabel = document.getElementById(options.labelId || 'altitude-label');
-    this.altitudeBarFill = document.getElementById(options.fillId || 'altitude-bar-fill');
-    this.minHeight = options.minHeight || 20;
-    this.maxHeight = options.maxHeight || 160;
+    this.animateSpeed = animateSpeed;
+    this.altitudeKey = 'altitude';
+    this.maxAltitude = Math.max(...dataList.map(d => d['altitude']));
+    this.altitudeBar = document.getElementById('altitude-bar');
+    this.altitudeLabel = document.getElementById('altitude-label');
+    this.altitudeBarFill = document.getElementById('altitude-bar-fill');
+    this.minHeight = 20;
+    this.maxHeight = 160;
     this.altitudeIndex = 0;
     this.maxReached = 0;
 
@@ -16,8 +18,13 @@ export class AltitudeBar {
   }
 
   animate() {
-    if (this.altitudeIndex >= this.dataList.length) return;
-    const altitude = this.dataList[this.altitudeIndex].altitude;
+    if (this.altitudeIndex >= this.dataList.length) {
+      // Al terminar, mostrar el valor máximo alcanzado
+      this.altitudeLabel.textContent = this.maxReached.toFixed(1) + ' m';
+      return;
+    }
+    const altitude = this.dataList[this.altitudeIndex]['altitude'];
+
     if (altitude > this.maxReached) {
       this.maxReached = altitude;
     }
@@ -26,10 +33,7 @@ export class AltitudeBar {
     this.altitudeBarFill.style.height = fillHeight + 'px';
     this.altitudeLabel.textContent = altitude.toFixed(1) + ' m';
     this.altitudeIndex++;
-    requestAnimationFrame(() => this.animate());
+    setTimeout(() => this.animate(), this.animateSpeed);
   }
 }
 
-// Ejemplo de uso:
-// const bar = new AltitudeBar(dataList);
-// bar.animate();

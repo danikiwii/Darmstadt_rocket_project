@@ -15,12 +15,13 @@ export class AnimatedLineChart {
    * @param {Array} labels - array de strings con las etiquetas para cada línea
    * @param {Array} colors - array de strings con los colores de cada línea
    */
-  constructor(canvasId, dataList, fields, labels, colors) {
+  constructor(canvasId, dataList, fields, labels, colors, animateSpeed = 30) {
     this.ctx = document.getElementById(canvasId).getContext('2d');
     this.dataList = dataList;
     this.fields = fields;
     this.labels = labels;
     this.colors = colors;
+    this.animateSpeed = animateSpeed;
     this.chart = new Chart(this.ctx, {
       type: 'line',
       data: {
@@ -29,7 +30,7 @@ export class AnimatedLineChart {
           label: labels[idx] || field,
           data: [],
           borderColor: colors[idx % colors.length],
-          tension: 0.1,
+          tension: 0.5,
           fill: false,
           pointRadius: 0
         }))
@@ -42,7 +43,7 @@ export class AnimatedLineChart {
             title: { display: false }, // Oculta la leyenda del eje X
             ticks: { display: false }  // Oculta los números del eje X
           },
-          y: { title: { display: true, text: labels[0] } }
+          y: { title: { display: true } }
         }
       }
     });
@@ -51,16 +52,16 @@ export class AnimatedLineChart {
   }
 
   animateChart() {
-    const animateSpeed =30 ; // Ajusta la velocidad de animación aquí. segundos de actualizacion
     // Si hay más datos, añade el siguiente punto al gráfico
     if (this.i < this.dataList.length) {
-      this.chart.data.labels.push(this.dataList[this.i].time);
+      // Usar solo la key 'timestamp' del JSON para el eje X
+      this.chart.data.labels.push(this.dataList[this.i].timestamp);
       this.fields.forEach((field, idx) => {
         this.chart.data.datasets[idx].data.push(this.dataList[this.i][field]);
       });
       this.chart.update();
       this.i++;
-      setTimeout(() => this.animateChart(), animateSpeed);
+      setTimeout(() => this.animateChart(),this.animateSpeed);
     }
   }
 }
