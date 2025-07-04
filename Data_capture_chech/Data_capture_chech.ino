@@ -1,6 +1,6 @@
 /*
- * Rocket Data Logger for ESP32-S3
- * Complete fixed version with all function implementations
+ * Rocket Data Logger for ESP32-S3 with GPS and Gyroscope
+ * Collects: acceleration, gyroscope, pressure, altitude, temperature, latitude, longitude
  */
 
 #include <Arduino.h>
@@ -10,8 +10,9 @@
 #include <Adafruit_ST7789.h>
 #include <Adafruit_BMP280.h>
 #include <SensorQMI8658.hpp>
+#include <Adafruit_GPS.h>
 
-// Pin Definitions
+// Pin definitions
 #define TFT_CS        7
 #define TFT_DC        39
 #define TFT_RST       40
@@ -26,33 +27,35 @@
 
 // Constants
 const float SEA_LEVEL_PRESSURE_HPA = 1013.25;
-const unsigned int MAX_DATA_POINTS = 2000;    // Reduced for memory
+const unsigned int MAX_DATA_POINTS = 2000;
 const unsigned int SAMPLE_RATE_HZ = 10;
 const unsigned int SAMPLE_INTERVAL_US = 1000000 / SAMPLE_RATE_HZ;
-const float LAUNCH_THRESHOLD = 2.0;          // 2G threshold for launch detection
+const float LAUNCH_THRESHOLD = 2.0; // 2G threshold
 
-// Sensor Objects
+// Sensor objects
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
 Adafruit_BMP280 bmp;
 SensorQMI8658 qmi;
+Adafruit_GPS gps(&Wire);
 
-// Data Structure
+// Data structure for each sample
 struct SensorData {
   unsigned long timestamp;
-  float acceleration[3]; // x, y, z in g
-  float gyroscope[3];    // x, y, z in deg/s
-  float pressure;       // in hPa
-  float altitude;       // in meters
-  float temperature;    // in °C
+  float acceleration[3];
+  float gyroscope[3];
+  float pressure;
+  float altitude;
+  float temperature;
+  float latitude;
+  float longitude;
 };
 
-// Data Storage
 SensorData flightData[MAX_DATA_POINTS];
 volatile unsigned int dataIndex = 0;
 volatile bool launchDetected = false;
 volatile bool recordingComplete = false;
 
-// Function Implementations
+// Initialize display
 void initDisplay() {
   pinMode(TFT_backlight, OUTPUT);
   digitalWrite(TFT_backlight, HIGH);
@@ -64,48 +67,44 @@ void initDisplay() {
   tft.println("Rocket Logger");
 }
 
+// Initialize BMP280
 void initBMP() {
   if (!bmp.begin(BMP_Addr)) {
     tft.setCursor(0, 20);
     tft.print("BMP not found");
-    Serial.println("BMP not found");
     while (1);
   }
-  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,
-                  Adafruit_BMP280::SAMPLING_X2,
-                  Adafruit_BMP280::SAMPLING_X16,
-                  Adafruit_BMP280::FILTER_X16,
-                  Adafruit_BMP280::STANDBY_MS_500);
 }
 
+// Initialize QMI8658
 void initQMI() {
   if (!qmi.begin(Wire, QMI_Addr, I2C_SDA, I2C_SCL)) {
-    tft.setCursor(0, 20);
+    tft.setCursor(0, 40);
     tft.print("QMI not found");
-    Serial.println("QMI not found");
     while (1);
   }
   qmi.enableGyroscope();
   qmi.enableAccelerometer();
-  qmi.configAccelerometer(
-    SensorQMI8658::ACC_RANGE_8G,
-    SensorQMI8658::ACC_ODR_1000Hz,
-    SensorQMI8658::LPF_MODE_0);
-  qmi.configGyroscope(
-    SensorQMI8658::GYR_RANGE_512DPS,
-    SensorQMI8658::GYR_ODR_896_8Hz,
-    SensorQMI8658::LPF_MODE_3);
 }
 
+// Initialize GPS
+void initGPS() {
+  gps.begin(0x10); // I2C address of PA1010D (verifica que sea correcto)
+  gps.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
+  gps.sendCommand(PMTK_SET_NMEA_UPDATE_1HZ);
+  delay(1000);
+}
+
+// Detect launch based on vertical acceleration
 bool detectLaunch(float currentAccel) {
-  static float baselineAccel = 1.0; // Normal gravity
+  static float baselineAccel = 1.0;
   return (currentAccel > baselineAccel * LAUNCH_THRESHOLD);
 }
 
+// Display current status on screen
 void displayStatus() {
   tft.setTextSize(1);
   tft.setCursor(0, 100);
-  
   float accX, accY, accZ;
   if (qmi.getAccelerometer(accX, accY, accZ)) {
     tft.printf("AccZ: %.2f g\n", accZ);
@@ -114,12 +113,12 @@ void displayStatus() {
   tft.printf("Samples: %d/%d\n", dataIndex, MAX_DATA_POINTS);
 }
 
+// Output all recorded data as JSON
 void dumpDataToSerial() {
   Serial.println("{\"flight_data\": [");
-  
   for (int i = 0; i < dataIndex; i++) {
     Serial.printf("  {\"timestamp\": %lu,", flightData[i].timestamp);
-    Serial.printf("\"acceleration\": {\"x\": %.3f, \"y\": %.3f, \"z\": %.3f},", 
+    Serial.printf("\"acceleration\": {\"x\": %.3f, \"y\": %.3f, \"z\": %.3f},",
                  flightData[i].acceleration[0],
                  flightData[i].acceleration[1],
                  flightData[i].acceleration[2]);
@@ -129,52 +128,50 @@ void dumpDataToSerial() {
                  flightData[i].gyroscope[2]);
     Serial.printf("\"pressure\": %.2f,", flightData[i].pressure);
     Serial.printf("\"altitude\": %.2f,", flightData[i].altitude);
-    Serial.printf("\"temperature\": %.2f}", flightData[i].temperature);
-    
-    if (i < dataIndex - 1) {
-      Serial.println(",");
-    } else {
-      Serial.println();
-    }
+    Serial.printf("\"temperature\": %.2f,", flightData[i].temperature);
+    Serial.printf("\"latitude\": %.6f, \"longitude\": %.6f}", 
+                 flightData[i].latitude, flightData[i].longitude);
+    if (i < dataIndex - 1) Serial.println(",");
+    else Serial.println();
   }
-  
   Serial.println("]}");
 }
 
+// Setup function
 void setup() {
   Serial.begin(115200);
   while (!Serial);
-  
   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI, TFT_CS);
   Wire.begin(I2C_SDA, I2C_SCL);
-
   initDisplay();
   initBMP();
   initQMI();
-
+  initGPS();
   memset(flightData, 0, sizeof(flightData));
   tft.println("Ready");
   tft.println("Waiting for launch...");
-  Serial.println("Rocket Data Logger Ready");
 }
 
+// Main loop
 void loop() {
   static unsigned long lastSampleTime = 0;
   unsigned long currentTime = micros();
 
   if (currentTime - lastSampleTime >= SAMPLE_INTERVAL_US && !recordingComplete) {
     lastSampleTime = currentTime;
-    
+
     float accX, accY, accZ;
     float gx, gy, gz;
-    if (!qmi.getAccelerometer(accX, accY, accZ)) {
-      Serial.println("Accelerometer read failed!");
-      return;
+    if (!qmi.getAccelerometer(accX, accY, accZ)) return;
+    if (!qmi.getGyroscope(gx, gy, gz)) return;
+
+    gps.read();
+    float lat = 0.0, lon = 0.0;
+    if (gps.fix) {
+      lat = gps.latitudeDegrees;
+      lon = gps.longitudeDegrees;
     }
-    if (!qmi.getGyroscope(gx, gy, gz)) {
-      Serial.println("Gyroscope read failed!");
-      return;
-    }
+
     float pressure = bmp.readPressure() / 100.0F;
     float altitude = bmp.readAltitude(SEA_LEVEL_PRESSURE_HPA);
     float temperature = bmp.readTemperature();
@@ -185,7 +182,6 @@ void loop() {
       tft.fillScreen(ST77XX_BLACK);
       tft.setCursor(0, 0);
       tft.println("LAUNCH DETECTED!");
-      Serial.println("LAUNCH DETECTED!");
     }
 
     if (launchDetected || dataIndex < MAX_DATA_POINTS) {
@@ -200,13 +196,14 @@ void loop() {
         flightData[dataIndex].pressure = pressure;
         flightData[dataIndex].altitude = altitude;
         flightData[dataIndex].temperature = temperature;
+        flightData[dataIndex].latitude = lat;
+        flightData[dataIndex].longitude = lon;
         dataIndex++;
       } else {
         recordingComplete = true;
         tft.fillScreen(ST77XX_BLACK);
         tft.setCursor(0, 0);
         tft.println("DATA FULL");
-        Serial.println("Data storage full");
       }
     }
   }
@@ -219,6 +216,6 @@ void loop() {
 
   if (recordingComplete && !Serial.available()) {
     dumpDataToSerial();
-    while(1); // Stop after dumping data
+    while (1);
   }
 }
