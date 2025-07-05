@@ -1,5 +1,5 @@
 import * as THREE from 'https://unpkg.com/three@0.153.0/build/three.module.js';
-import { allParticles } from './Particles.js';    
+  
 
 
 export function createScene(canvas) {
@@ -8,7 +8,7 @@ export function createScene(canvas) {
   scene.background = new THREE.Color(0x202030);
   scene.fog = new THREE.FogExp2(0x202030, 0.005); // Añadir niebla para dar profundidad
   createLights(scene);
-  allParticles.forEach(particle => particle.addTo(scene));  
+  // Las partículas se añaden desde main.js, no aquí
 
   //camera
   const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight,0.1,1000);
