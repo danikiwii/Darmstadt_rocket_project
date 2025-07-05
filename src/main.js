@@ -1,7 +1,10 @@
-import { createScene } from './scene.js';
-import { Rocket} from './rocket.js';
-import { setupControls } from './controls.js';
-import { Particles } from './Particles.js';
+import { createScene } from './simulation/scene.js';
+import { Rocket} from './simulation/rocket.js';
+import { setupControls } from './simulation/controls.js';
+import { Particles } from './simulation/Particles.js';
+import {AnimatedLineChart } from './graphs/graphs.js';
+import { AltitudeBar } from './graphs/heightBar.js';
+
 
 
 const canvas = document.getElementById('three-canvas');
@@ -16,11 +19,12 @@ rocket.load(scene);
 // Variables para la simulación
 let dataList = [];
 let frameIndex = 0;
-let simulationSpeed = 1; // 1 = tiempo real, 2 = doble de rápido, etc.
+let simulationSpeed = 0.01; // 1 = tiempo real, 2 = doble de rápido, etc.
 let lastUpdate = performance.now();
 let speed = 0;
 let rotation = { pitch: 0, yaw: 0, roll: 0 };
 let allParticles = [];
+let allGraphs = [];
 
 // Instanciar partículas y cargar datos
 fetch('../../data/result.json')
@@ -69,6 +73,55 @@ fetch('../../data/result.json')
     });
     allParticles = [stars, rocketParticles_orange, rocketParticles_yellow, rocketParticles_gray];
     allParticles.forEach(particle => particle.addTo(scene));
+
+
+    //gráficos-------------------
+    const animationSpeed = 100; // Velocidad de animación en milisegundos
+
+    // Chart 1: Speed
+    const velocityChart = new AnimatedLineChart(
+      'speedChart',
+      dataList,
+      ['velocity'],
+      ['Speed (m/s)'],
+      ['rgb(75,192,192)'],
+  
+    );
+    // Chart 2: Acceleration
+    const accelerationChart = new AnimatedLineChart(
+      'accelerationChart',
+      dataList,
+      ['acceleration'],
+      ['Acceleration (m/s²)'],
+      ['rgb(255,99,132)'],
+  
+
+    );
+    // Chart 3: Pitch, Yaw, Roll
+    const rotationChart = new AnimatedLineChart(
+      'rotationChart',
+      dataList,
+      ['pitch', 'yaw', 'roll'],
+      ['Pitch (rad)', 'Yaw (rad)', 'Roll (rad)'],
+      ['rgb(153,102,255)', 'rgb(54,162,235)', 'rgb(201,203,207)'],
+
+    );
+    // Chart 4: Altitude
+    const altitudeChart = new AnimatedLineChart(
+      'altitudeChart',
+      dataList,
+      ['altitude'],
+      ['Altitude (m)'],
+      ['rgb(255,205,86)'],
+ 
+    );
+     // Atitude Bar
+    const bar = new AltitudeBar(  
+      dataList,
+      animationSpeed
+    );
+    allGraphs = [velocityChart, accelerationChart, rotationChart, altitudeChart];
+
   });
 
 function animate() {
@@ -81,6 +134,8 @@ function animate() {
     const now = performance.now();
     // Avanza el frame según simulationSpeed (ajusta 60 para tu FPS objetivo)
     if (now - lastUpdate > (1000 / 60) / simulationSpeed) {
+      //pasa al siguiente frame
+      // Si estás en el último frame, no avances más
       frameIndex = Math.min(frameIndex + 1, dataList.length - 1);
       speed = dataList[frameIndex].velocity;
       rotation = {
@@ -91,8 +146,8 @@ function animate() {
       lastUpdate = now;
     }
   }
-
   rocket.stTilt(rotation);
   allParticles.forEach(particle => particle.animate(speed, rotation));
+  allGraphs.forEach(graph => graph.animateChart());
 }
 animate();

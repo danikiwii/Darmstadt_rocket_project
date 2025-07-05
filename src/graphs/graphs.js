@@ -15,13 +15,12 @@ export class AnimatedLineChart {
    * @param {Array} labels - array de strings con las etiquetas para cada línea
    * @param {Array} colors - array de strings con los colores de cada línea
    */
-  constructor(canvasId, dataList, fields, labels, colors, animateSpeed = 30) {
+  constructor(canvasId, dataList, fields, labels, colors) {
     this.ctx = document.getElementById(canvasId).getContext('2d');
     this.dataList = dataList;
     this.fields = fields;
     this.labels = labels;
     this.colors = colors;
-    this.animateSpeed = animateSpeed;
     this.chart = new Chart(this.ctx, {
       type: 'line',
       data: {
@@ -48,7 +47,6 @@ export class AnimatedLineChart {
       }
     });
     this.i = 0;
-    this.animateChart(); // la funcion se autollama. Añade el siguiente punto cada vez
   }
 
   animateChart() {
@@ -61,7 +59,6 @@ export class AnimatedLineChart {
       });
       this.chart.update();
       this.i++;
-      setTimeout(() => this.animateChart(),this.animateSpeed);
     }
   }
 }
