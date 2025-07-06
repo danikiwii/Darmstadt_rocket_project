@@ -143,4 +143,4 @@ if __name__ == "__main__":
     else:
         res = process(samples)
         if res and save_results(res, out):
-            print("Done")
+            print("Calculation successful, results saved to", out)
