@@ -1,9 +1,9 @@
 import json, os, requests
 from datetime import datetime, timezone
 
-INPUT_FILE = "rocket_flight_data.json"
-OUTPUT_FILE = "weather_data.json"
-CACHE_FILE = "weather_cache.json"
+INPUT_FILE = "data/rocket_flight_data.json"
+OUTPUT_FILE = "data/weather_data.json"
+CACHE_FILE = "data/weather_cache.json"
 API_URL = "https://dwd-api.open-meteo.com/v1/forecast"
 TIMEOUT = 15
 
