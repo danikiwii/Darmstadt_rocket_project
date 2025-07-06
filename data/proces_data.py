@@ -122,8 +122,8 @@ def save_results(results, path):
 
 # Main execution
 if __name__ == "__main__":
-    input_file = "rocket_flight_data.json"  # Input JSON file from Arduino
-    output_file = "result.json"             # Output file with processed results
+    input_file = "data/rocket_flight_data.json"  # Input JSON file from Arduino
+    output_file = "data/result.json"             # Output file with processed results
     samples = load_samples(input_file)
     if samples:
         results = process(samples)
