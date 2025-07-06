@@ -63,9 +63,8 @@ def main():
                temperature_2m=h["temperature_2m"][i],
                precipitation=h["precipitation"][i],
                wind_speed_10m=h.get("wind_speed_10m", [None])[i])
-    res = dict(metadata=dict(source="Open-Meteo", generated_at=datetime.now(timezone.utc).isoformat()),
-               weather=out)
-    json.dump(res, open(OUTPUT_FILE, "w"), indent=2, ensure_ascii=False)
+    # Guardamos solo 'out' sin el metadata
+    json.dump(out, open(OUTPUT_FILE, "w"), indent=2, ensure_ascii=False)
     print("Saved", OUTPUT_FILE)
 
 if __name__ == "__main__":
