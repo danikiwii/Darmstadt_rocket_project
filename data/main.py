@@ -10,7 +10,7 @@ subprocess.run(["python", "data/process_data.py"], check=True)
 subprocess.run(["python", "data/api_weather_process.py"], check=True)
 
 # Step 3: Load both JSONs and combine them
-with open("data/result_process_data.json", "r") as f:
+with open("data/processed_data.json", "r") as f:
     flight_results = json.load(f)
 with open("data/weather_data.json", "r") as f:
     weather = json.load(f)

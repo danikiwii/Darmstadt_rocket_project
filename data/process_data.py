@@ -119,7 +119,7 @@ def save_results(res, path):
         return False
 
 if __name__ == "__main__":
-    inp, out = "data/rocket_flight_data.json", "data/result_process_data.json"
+    inp, out = "data/rocket_flight_data.json", "data/processed_data.json"
     samples = load_samples(inp)
     if not samples:
         print("No valid data")
