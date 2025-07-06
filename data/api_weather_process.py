@@ -1,96 +1,71 @@
-import json
-import requests
+import json, os, requests
 from datetime import datetime, timezone
 
-# Input and output file paths
 INPUT_FILE = "rocket_flight_data.json"
 OUTPUT_FILE = "weather_data.json"
+CACHE_FILE = "weather_cache.json"
+API_URL = "https://dwd-api.open-meteo.com/v1/forecast"
+TIMEOUT = 15
 
-# Function to extract the last valid GPS coordinates and timestamp from flight data
-def extract_coordinates_and_time(json_path):
-    try:
-        with open(json_path, "r") as f:
-            data = json.load(f)
-            samples = data.get("flight_data", [])
-            # Search for the last sample with valid latitude, longitude, and timestamp
-            for sample in reversed(samples):
-                lat = sample.get("latitude")
-                lon = sample.get("longitude")
-                timestamp = sample.get("timestamp")
-                if lat is not None and lon is not None and timestamp is not None:
-                    # Convert microseconds to seconds if needed
-                    if timestamp > 1e12:  # likely in microseconds
-                        timestamp = timestamp / 1e6
-                    dt = datetime.fromtimestamp(timestamp).replace(tzinfo=timezone.utc)
-                    # Format to match API time, e.g. '2025-07-04T14:00'
-                    iso_time = dt.strftime('%Y-%m-%dT%H:00')
-                    return lat, lon, iso_time
-    except Exception as e:
-        print(f"Error reading coordinates: {e}")
+def validate_coords(lat, lon):
+    return -90 <= lat <= 90 and -180 <= lon <= 180
+
+def latest_point(path):
+    with open(path) as f:
+        samples = json.load(f).get("flight_data", [])
+    for s in reversed(samples):
+        try:
+            lat, lon = float(s["latitude"]), float(s["longitude"])
+            ts = s["timestamp"]
+            if validate_coords(lat, lon) and isinstance(ts, (int, float)):
+                if ts > 1e12:
+                    ts /= 1e6
+                dt = datetime.fromtimestamp(ts, timezone.utc)
+                return lat, lon, dt.isoformat(timespec="hours")
+        except Exception:
+            pass
     return None, None, None
 
-# Function to fetch weather data from Open-Meteo API
-def get_weather_data(lat, lon):
-    url = "https://dwd-api.open-meteo.com/v1/forecast"
-    params = {
-        "latitude": lat,
-        "longitude": lon,
-        "hourly": "temperature_2m,precipitation",
-        "timezone": "auto"
-    }
-    try:
-        response = requests.get(url, params=params)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            print("Error fetching weather data:", response.status_code)
-    except Exception as e:
-        print("Request failed:", e)
-    return None
-
-# Find the closest time index in the API response
-def find_closest_time_index(api_times, target_time):
-    # api_times: list of ISO strings, target_time: ISO string
-    min_diff = float('inf')
-    min_idx = 0
-    for i, t in enumerate(api_times):
-        diff = abs(datetime.fromisoformat(t) - datetime.fromisoformat(target_time))
-        if diff.total_seconds() < min_diff:
-            min_diff = diff.total_seconds()
-            min_idx = i
-    return min_idx
-
-# Main execution
-def main():
-    print("Extracting coordinates and time from flight data...")
-    lat, lon, iso_time = extract_coordinates_and_time(INPUT_FILE)
-    if lat is None or lon is None or iso_time is None:
-        print("No valid coordinates or timestamp found.")
-        return
-
-    print(f"Coordinates found: Latitude={lat}, Longitude={lon}, Time={iso_time}")
-    weather_data = get_weather_data(lat, lon)
-    if weather_data and "hourly" in weather_data:
-        api_times = weather_data["hourly"]["time"]
-        idx = find_closest_time_index(api_times, iso_time)
-        temp = weather_data["hourly"]["temperature_2m"][idx]
-        precip = weather_data["hourly"]["precipitation"][idx]
-
-        #The result JSON will only have Temperature and Precipitation from the API of the weather.
-        result = {
-            "temperature_2m": temp,
-            "precipitation": precip
-        }
+def fetch_weather(lat, lon, use_cache=False):
+    if use_cache and os.path.exists(CACHE_FILE):
         try:
-            with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-                json.dump(result, f, ensure_ascii=False, indent=4)
-            print(f"Weather data saved to '{OUTPUT_FILE}' (closest hour)")
-        except Exception as e:
-            print("Error saving weather data:", e)
-    else:
-        print("No weather data found for the given coordinates.")
+            return json.load(open(CACHE_FILE))
+        except Exception:
+            pass
+    params = dict(latitude=lat, longitude=lon,
+                  hourly="temperature_2m,precipitation,wind_speed_10m",
+                  timezone="UTC", forecast_days=1)
+    r = requests.get(API_URL, params=params, timeout=TIMEOUT)
+    r.raise_for_status()
+    data = r.json()
+    if use_cache:
+        json.dump(data, open(CACHE_FILE, "w"))
+    return data
+
+def closest_idx(times, target):
+    td = datetime.fromisoformat(target)
+    return min(range(len(times)),
+               key=lambda i: abs(datetime.fromisoformat(times[i]) - td).total_seconds())
+
+def main():
+    lat, lon, iso_t = latest_point(INPUT_FILE)
+    if None in (lat, lon, iso_t):
+        print("No coords")
+        return
+    w = fetch_weather(lat, lon)
+    if not w or not w.get("hourly"):
+        print("No weather")
+        return
+    h = w["hourly"]
+    i = closest_idx(h["time"], iso_t)
+    out = dict(time=h["time"][i],
+               temperature_2m=h["temperature_2m"][i],
+               precipitation=h["precipitation"][i],
+               wind_speed_10m=h.get("wind_speed_10m", [None])[i])
+    res = dict(metadata=dict(source="Open-Meteo", generated_at=datetime.now(timezone.utc).isoformat()),
+               weather=out)
+    json.dump(res, open(OUTPUT_FILE, "w"), indent=2, ensure_ascii=False)
+    print("Saved", OUTPUT_FILE)
 
 if __name__ == "__main__":
     main()
-
-
