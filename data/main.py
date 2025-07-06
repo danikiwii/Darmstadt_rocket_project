@@ -25,5 +25,5 @@ combined = {
 with open("data/results.json", "w") as f:
     json.dump(combined, f, indent=2)
 
-print("Combined results saved to results.json")
+print("Result of all the process saved in results.json")
 
