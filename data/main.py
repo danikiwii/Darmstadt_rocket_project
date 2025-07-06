@@ -4,15 +4,15 @@ import json
 import os
 
 # Step 1: Run proces_data.py to generate result.json
-subprocess.run(["python", "proces_data.py"], check=True)
+subprocess.run(["python", "data/proces_data.py"], check=True)
 
 # Step 2: Run api_weather_process.py to generate weather_data.json
-subprocess.run(["python", "api_weather_process.py"], check=True)
+subprocess.run(["python", "data/api_weather_process.py"], check=True)
 
 # Step 3: Load both JSONs and combine them
-with open("result.json", "r") as f:
+with open("data/result.json", "r") as f:
     flight_results = json.load(f)
-with open("weather_data.json", "r") as f:
+with open("data/weather_data.json", "r") as f:
     weather = json.load(f)
 
 # Step 4: Combine into a single JSON
