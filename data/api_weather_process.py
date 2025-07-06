@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 INPUT_FILE = "data/rocket_flight_data.json"
 OUTPUT_FILE = "data/weather_data.json"
 CACHE_FILE = "data/weather_cache.json"
-API_URL = "https://dwd-api.open-meteo.com/v1/forecast"
+API_URL = "https://api.open-meteo.com/v1/forecast"
 TIMEOUT = 15
 
 def validate_coords(lat, lon):
@@ -43,9 +43,10 @@ def fetch_weather(lat, lon, use_cache=False):
     return data
 
 def closest_idx(times, target):
-    td = datetime.fromisoformat(target)
+    # Make both datetimes timezone-aware (UTC)
+    td = datetime.fromisoformat(target).replace(tzinfo=timezone.utc)
     return min(range(len(times)),
-               key=lambda i: abs(datetime.fromisoformat(times[i]) - td).total_seconds())
+               key=lambda i: abs(datetime.fromisoformat(times[i]).replace(tzinfo=timezone.utc) - td).total_seconds())
 
 def main():
     lat, lon, iso_t = latest_point(INPUT_FILE)
