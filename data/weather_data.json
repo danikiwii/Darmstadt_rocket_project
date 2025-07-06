@@ -1,0 +1,12 @@
+{
+  "metadata": {
+    "source": "Open-Meteo",
+    "generated_at": "2025-07-06T17:08:55.179338+00:00"
+  },
+  "weather": {
+    "time": "2025-07-06T00:00",
+    "temperature_2m": 15.0,
+    "precipitation": 0.0,
+    "wind_speed_10m": 5.1
+  }
+}
