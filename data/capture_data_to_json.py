@@ -10,7 +10,7 @@ from datetime import datetime
 MAX_JSON_SIZE = 10 * 1024 * 1024  # 10 MB maximum JSON size
 DEFAULT_BAUDRATE = 921600         # Faster than standard 115200
 BUFFER_READ_SIZE = 4096           # Read chunks of 4KB at a time
-TIMEOUT = 2                       # Serial port timeout in seconds
+TIMEOUT = 0.2                       # Serial port timeout in seconds
 
 def setup_logging():
     """Configure comprehensive logging to file and console"""
