@@ -1,51 +1,78 @@
 import serial
-import time
 import json
+import argparse
+import logging
+import sys
+import time
 
-# Serial port configuration
-SERIAL_PORT = 'COM3'       # Replace with your actual serial port (e.g., '/dev/ttyUSB0' on Linux)
-BAUD_RATE = 115200         # Must match the baud rate used by the ESP32
-OUTPUT_FILE = 'rocket_flight_data.json'  # Output file where the JSON data will be saved
+def setup_logging():
+    """Configure logging to file and console with timestamps."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler('serial_capture.log'),  # Log to file
+            logging.StreamHandler()                     # Log to console
+        ]
+    )
 
-# Function to capture JSON object sent over serial and save it to a file
 def capture_json_from_serial(port, baudrate, output_file):
-    with serial.Serial(port, baudrate, timeout=1) as ser:
-        print(f"Listening on {port} at {baudrate} baud...")
-        buffer = ""           # Buffer to accumulate the JSON text
-        capturing = False     # Flag to indicate whether we're inside a JSON object
+    """
+    Capture JSON data from serial port with error handling and retries.
+    Args:
+        port (str): Serial port (e.g., 'COM3' or '/dev/ttyUSB0')
+        baudrate (int): Baud rate (e.g., 115200)
+        output_file (str): Path to save JSON data
+    """
+    max_retries = 3       # Max connection attempts
+    retry_delay = 5       # Seconds between retries
 
-        while True:
-            # Read a line from the serial port
-            line = ser.readline().decode(errors='ignore').strip()
-
-            if not line:
-                continue  # Skip empty lines
-
-            # Detect the start of the JSON object
-            if line.startswith('{') and not capturing:
-                capturing = True
-                buffer = line + '\n'
-                print("Start of JSON object detected")
-
-            # Detect the end of the JSON object
-            elif line.startswith('}') and capturing:
-                buffer += line
-                print("End of JSON object detected")
-                break  # Exit the loop once the full JSON object is received
-
-            # Accumulate lines inside the JSON object
-            elif capturing:
-                buffer += line + '\n'
-
-        # Try to parse the JSON and save it to a file
+    for attempt in range(max_retries):
         try:
-            data = json.loads(buffer)
-            with open(output_file, 'w') as f:
-                json.dump(data, f, indent=2)
-            print(f"Data saved to {output_file}")
-        except json.JSONDecodeError as e:
-            print("Error decoding JSON:", e)
+            # Open serial connection with timeout
+            with serial.Serial(port, baudrate, timeout=2) as ser:
+                logging.info(f"Connected to {port}")
+                buffer = ""
+                
+                while True:
+                    # Read line and handle decoding errors
+                    line = ser.readline().decode(errors='ignore').strip()
+                    
+                    # Detect JSON start/end and build buffer
+                    if line.startswith('{'):
+                        buffer = line
+                    elif line and buffer:
+                        buffer += line
+                    
+                    # Validate complete JSON
+                    if buffer.endswith('}') and buffer.startswith('{'):
+                        try:
+                            data = json.loads(buffer)  # Parse JSON
+                            with open(output_file, 'w') as f:
+                                json.dump(data, f, indent=2)
+                            logging.info(f"Data saved to {output_file}")
+                            return  # Exit on success
+                        
+                        except json.JSONDecodeError as e:
+                            logging.error(f"Invalid JSON: {e}")
+                            buffer = ""  # Reset buffer
+                            
+        except serial.SerialException as e:
+            logging.warning(f"Attempt {attempt + 1} failed: {e}")
+            time.sleep(retry_delay)
+    
+    logging.error("Max retries reached. Exiting.")
+    sys.exit(1)
 
-# Call this function after the rocket has landed and the ESP32 is connected to the computer
-# Uncomment the line below to run the capture
-# capture_json_from_serial(SERIAL_PORT, BAUD_RATE, OUTPUT_FILE)
+if __name__ == "__main__":
+    setup_logging()
+    
+    # Configure command-line arguments
+    parser = argparse.ArgumentParser(description="Capture JSON data from serial port")
+    parser.add_argument('--port', default='COM3', help='Serial port name')
+    parser.add_argument('--baud', type=int, default=115200, help='Baud rate')
+    parser.add_argument('--output', default='flight_data.json', help='Output JSON file')
+    args = parser.parse_args()
+    
+    # Start capture
+    capture_json_from_serial(args.port, args.baud, args.output)
