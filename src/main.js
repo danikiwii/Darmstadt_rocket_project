@@ -19,7 +19,6 @@ rocket.load(scene);
 // Variables para la simulación
 let dataList = [];
 let frameIndex = 0;
-let currentData = {};
 let simulationSpeed = 0.1; // 1 = tiempo real, 2 = doble de rápido, etc.
 let lastUpdate = performance.now();
 let speed = 0;
@@ -102,14 +101,6 @@ fetch('../../data/result.json')
   
 
     );
-    // Chart 3: Pitch, Yaw, Roll
-    const rotationChart = new AnimatedLineChart(
-      'rotationChart',
-      ['pitch', 'yaw', 'roll'],
-      ['Pitch (rad)', 'Yaw (rad)', 'Roll (rad)'],
-      ['rgb(153,102,255)', 'rgb(54,162,235)', 'rgb(201,203,207)'],
-
-    );
     // Chart 4: Altitude
     const altitudeChart = new AnimatedLineChart(
       'altitudeChart',
@@ -122,7 +113,7 @@ fetch('../../data/result.json')
     bar = new AltitudeBar(  
       dataList
     );
-    allGraphs = [velocityChart, accelerationChart, rotationChart, altitudeChart];
+    allGraphs = [velocityChart, accelerationChart, altitudeChart];
 
   });
 
