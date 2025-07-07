@@ -36,11 +36,11 @@ let bar;
 fetch('../../data/result.json')
   .then(res => res.json())
   .then(json => {
-    const keys = Object.keys(json);
-    const length = json[keys[0]].length;
+    const keys = Object.keys(json.flight_results);
+    const length = json.flight_results[keys[0]].length;
     dataList = Array.from({ length }, (_, i) => {
       const obj = {};
-      for (const key of keys) obj[key] = json[key][i];
+      for (const key of keys) obj[key] = json.flight_results [key][i];
       return obj;
     });
 
