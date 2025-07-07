@@ -4,75 +4,173 @@ import argparse
 import logging
 import sys
 import time
+from datetime import datetime
+
+# Constants
+MAX_JSON_SIZE = 10 * 1024 * 1024  # 10 MB maximum JSON size
+DEFAULT_BAUDRATE = 921600         # Faster than standard 115200
+BUFFER_READ_SIZE = 4096           # Read chunks of 4KB at a time
+TIMEOUT = 2                       # Serial port timeout in seconds
 
 def setup_logging():
-    """Configure logging to file and console with timestamps."""
+    """Configure comprehensive logging to file and console"""
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
+        format='%(asctime)s.%(msecs)03d - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
         handlers=[
-            logging.FileHandler('serial_capture.log'),  # Log to file
-            logging.StreamHandler()                     # Log to console
+            logging.FileHandler('flight_data_capture.log', mode='w'),
+            logging.StreamHandler()
         ]
     )
+    logging.info("Initialized logging system")
 
-def capture_json_from_serial(port, baudrate, output_file):
+def validate_json_structure(data):
+    """Check if the received data has the expected structure"""
+    required_fields = ['timestamp', 'acceleration', 'altitude']
+    if not isinstance(data, dict):
+        return False
+    return all(field in data for field in required_fields)
+
+def capture_flight_data(port, baudrate, output_file):
     """
-    Capture JSON data from serial port with error handling and retries.
+    Capture JSON flight data from serial port with optimized performance
+    and robust error handling.
+    
     Args:
         port (str): Serial port (e.g., 'COM3' or '/dev/ttyUSB0')
-        baudrate (int): Baud rate (e.g., 115200)
+        baudrate (int): Baud rate (e.g., 921600)
         output_file (str): Path to save JSON data
     """
-    max_retries = 3       # Max connection attempts
-    retry_delay = 5       # Seconds between retries
-
-    for attempt in range(max_retries):
+    logging.info(f"Starting capture on {port} at {baudrate} baud")
+    start_time = time.time()
+    retry_count = 0
+    max_retries = 3
+    retry_delay = 5
+    
+    while retry_count < max_retries:
         try:
-            # Open serial connection with timeout
-            with serial.Serial(port, baudrate, timeout=2) as ser:
-                logging.info(f"Connected to {port}")
-                buffer = ""
+            with serial.Serial(
+                port=port,
+                baudrate=baudrate,
+                bytesize=serial.EIGHTBITS,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                timeout=TIMEOUT
+            ) as ser:
+                
+                logging.info(f"Successfully connected to {port}")
+                buffer = bytearray()
+                json_started = False
+                bytes_received = 0
                 
                 while True:
-                    # Read line and handle decoding errors
-                    line = ser.readline().decode(errors='ignore').strip()
+                    # Read available data in chunks for better performance
+                    chunk = ser.read(BUFFER_READ_SIZE)
+                    if not chunk:
+                        continue
                     
-                    # Detect JSON start/end and build buffer
-                    if line.startswith('{'):
-                        buffer = line
-                    elif line and buffer:
-                        buffer += line
+                    bytes_received += len(chunk)
+                    buffer.extend(chunk)
                     
-                    # Validate complete JSON
-                    if buffer.endswith('}') and buffer.startswith('{'):
-                        try:
-                            data = json.loads(buffer)  # Parse JSON
-                            with open(output_file, 'w') as f:
-                                json.dump(data, f, indent=2)
-                            logging.info(f"Data saved to {output_file}")
-                            return  # Exit on success
+                    # Check for maximum size to prevent memory issues
+                    if len(buffer) > MAX_JSON_SIZE:
+                        logging.error("Maximum JSON size exceeded")
+                        raise ValueError("JSON data too large")
+                    
+                    # Check for complete JSON (start with { and end with })
+                    if not json_started and b'{' in buffer:
+                        json_started = True
+                        # Trim anything before the opening brace
+                        buffer = buffer[buffer.index(b'{'):]
+                        logging.debug("JSON start detected")
+                    
+                    if json_started and b'}' in buffer:
+                        # Extract the complete JSON
+                        json_end = buffer.index(b'}') + 1
+                        json_data = buffer[:json_end]
+                        remaining_data = buffer[json_end:]
                         
-                        except json.JSONDecodeError as e:
-                            logging.error(f"Invalid JSON: {e}")
-                            buffer = ""  # Reset buffer
+                        try:
+                            # Decode and validate JSON
+                            decoded = json_data.decode('utf-8', errors='strict')
+                            data = json.loads(decoded)
                             
+                            if validate_json_structure(data):
+                                # Save the valid JSON data
+                                with open(output_file, 'w') as f:
+                                    json.dump(data, f, indent=2)
+                                
+                                transfer_time = time.time() - start_time
+                                transfer_rate = bytes_received / (transfer_time * 1024)
+                                
+                                logging.info(f"Successfully saved data to {output_file}")
+                                logging.info(f"Transfer stats: {bytes_received/1024:.1f} KB "
+                                            f"in {transfer_time:.2f} seconds "
+                                            f"({transfer_rate:.1f} KB/s)")
+                                return
+                            
+                            logging.warning("JSON structure validation failed")
+                            
+                        except (UnicodeDecodeError, json.JSONDecodeError) as e:
+                            logging.error(f"JSON decoding failed: {str(e)}")
+                        
+                        # Reset buffer with remaining data
+                        buffer = remaining_data
+                        json_started = False
+                
         except serial.SerialException as e:
-            logging.warning(f"Attempt {attempt + 1} failed: {e}")
-            time.sleep(retry_delay)
-    
-    logging.error("Max retries reached. Exiting.")
-    sys.exit(1)
+            retry_count += 1
+            if retry_count < max_retries:
+                logging.warning(f"Attempt {retry_count} failed: {str(e)}")
+                logging.info(f"Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+            else:
+                logging.error(f"Max retries reached. Last error: {str(e)}")
+                raise
+        
+        except Exception as e:
+            logging.error(f"Unexpected error: {str(e)}")
+            raise
 
-if __name__ == "__main__":
-    setup_logging()
+def main():
+    """Main entry point with argument parsing"""
+    parser = argparse.ArgumentParser(
+        description="Rocket Flight Data Capture Tool",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        '--port',
+        default='COM3',
+        help="Serial port name (COM3 on Windows, /dev/ttyUSB0 on Linux)"
+    )
+    parser.add_argument(
+        '--baud',
+        type=int,
+        default=DEFAULT_BAUDRATE,
+        help="Baud rate for serial communication"
+    )
+    parser.add_argument(
+        '--output',
+        default='data/rocket_flight_data.json',
+        help="Output JSON file path"
+    )
     
-    # Configure command-line arguments
-    parser = argparse.ArgumentParser(description="Capture JSON data from serial port")
-    parser.add_argument('--port', default='COM3', help='Serial port name')
-    parser.add_argument('--baud', type=int, default=115200, help='Baud rate')
-    parser.add_argument('--output', default='data/rocket_flight_data.json', help='Output JSON file')
     args = parser.parse_args()
     
-    # Start capture
-    capture_json_from_serial(args.port, args.baud, args.output)
+    try:
+        setup_logging()
+        logging.info(f"Starting rocket flight data capture")
+        logging.info(f"Configuration: Port={args.port}, Baud={args.baud}, Output={args.output}")
+        
+        capture_flight_data(args.port, args.baud, args.output)
+        
+    except Exception as e:
+        logging.error(f"Fatal error: {str(e)}")
+        sys.exit(1)
+        
+    logging.info("Capture completed successfully")
+    sys.exit(0)
+
+if __name__ == "__main__":
+    main()
