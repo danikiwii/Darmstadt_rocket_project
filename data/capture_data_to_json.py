@@ -71,7 +71,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Capture JSON data from serial port")
     parser.add_argument('--port', default='COM3', help='Serial port name')
     parser.add_argument('--baud', type=int, default=115200, help='Baud rate')
-    parser.add_argument('--output', default='flight_data.json', help='Output JSON file')
+    parser.add_argument('--output', default='data/rocket_flight_data.json', help='Output JSON file')
     args = parser.parse_args()
     
     # Start capture
