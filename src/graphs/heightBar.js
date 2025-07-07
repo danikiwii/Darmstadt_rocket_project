@@ -7,7 +7,7 @@ export class AltitudeBar {
     this.altitudeLabel = document.getElementById('altitude-label');
     this.altitudeBarFill = document.getElementById('altitude-bar-fill');
     this.minHeight = 20;
-    this.maxHeight = 160;
+    this.maxHeight = 320;
     this.altitudeIndex = 0;
     this.maxReached = 0;
   }

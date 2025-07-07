@@ -1,12 +1,4 @@
-// Asegúrate de tener <canvas id="chart1"></canvas> en tu HTML
-// No importes Chart, ya está disponible como global por el script en el HTML
 
-
-
-/**
- * Clase para crear y animar un gráfico de líneas en un canvas específico.
- * Permite graficar una o varias variables y animar la aparición de los datos.
- */
 export class AnimatedLineChart {
   /**
    * @param {string} canvasId - id del canvas donde se dibuja el gráfico
@@ -35,6 +27,15 @@ export class AnimatedLineChart {
       options: {
         animation: false,
         elements: { point: { radius: 0 } },
+         plugins: {
+          legend: {
+            labels: {
+              font: {
+                size: 18 // 👈 Cambia este valor al tamaño que prefieras
+              }
+            }
+          }
+        },
         scales: {
           x: {
             title: { display: false }, // Oculta la leyenda del eje X
