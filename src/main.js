@@ -19,12 +19,19 @@ rocket.load(scene);
 // Variables para la simulación
 let dataList = [];
 let frameIndex = 0;
-let simulationSpeed = 0.01; // 1 = tiempo real, 2 = doble de rápido, etc.
+let currentData = {};
+let simulationSpeed = 0.1; // 1 = tiempo real, 2 = doble de rápido, etc.
 let lastUpdate = performance.now();
 let speed = 0;
+let acceleration = 0;
+let altitude = 0;
+let timestamp = 0;
 let rotation = { pitch: 0, yaw: 0, roll: 0 };
 let allParticles = [];
 let allGraphs = [];
+let bar;
+
+
 
 // Instanciar partículas y cargar datos
 fetch('../../data/result.json')
@@ -61,7 +68,7 @@ fetch('../../data/result.json')
       color: 0xCCCCCC,
       size: 0.15,
       yRange: [-10, -4.25],
-      speedRatio: 0.003
+      speedRatio: 2
     });
     const stars = new Particles({
       count: 250,
@@ -69,7 +76,7 @@ fetch('../../data/result.json')
       color: 0xffffff,
       size: 0.15,
       yRange: [-50, 50],
-      speedRatio: 2
+      speedRatio: 20
     });
     allParticles = [stars, rocketParticles_orange, rocketParticles_yellow, rocketParticles_gray];
     allParticles.forEach(particle => particle.addTo(scene));
@@ -81,7 +88,6 @@ fetch('../../data/result.json')
     // Chart 1: Speed
     const velocityChart = new AnimatedLineChart(
       'speedChart',
-      dataList,
       ['velocity'],
       ['Speed (m/s)'],
       ['rgb(75,192,192)'],
@@ -90,7 +96,6 @@ fetch('../../data/result.json')
     // Chart 2: Acceleration
     const accelerationChart = new AnimatedLineChart(
       'accelerationChart',
-      dataList,
       ['acceleration'],
       ['Acceleration (m/s²)'],
       ['rgb(255,99,132)'],
@@ -100,7 +105,6 @@ fetch('../../data/result.json')
     // Chart 3: Pitch, Yaw, Roll
     const rotationChart = new AnimatedLineChart(
       'rotationChart',
-      dataList,
       ['pitch', 'yaw', 'roll'],
       ['Pitch (rad)', 'Yaw (rad)', 'Roll (rad)'],
       ['rgb(153,102,255)', 'rgb(54,162,235)', 'rgb(201,203,207)'],
@@ -109,45 +113,58 @@ fetch('../../data/result.json')
     // Chart 4: Altitude
     const altitudeChart = new AnimatedLineChart(
       'altitudeChart',
-      dataList,
       ['altitude'],
       ['Altitude (m)'],
       ['rgb(255,205,86)'],
  
     );
      // Atitude Bar
-    const bar = new AltitudeBar(  
-      dataList,
-      animationSpeed
+    bar = new AltitudeBar(  
+      dataList
     );
     allGraphs = [velocityChart, accelerationChart, rotationChart, altitudeChart];
 
   });
 
+
+  let simulationEnded = false; // Variable para controlar el fin de la simulación
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
   renderer.render(scene, camera);
 
-  // Actualizar frame según simulationSpeed y datos
-  if (dataList.length > 0) {
+  if (dataList.length > 0 && !simulationEnded) {
     const now = performance.now();
-    // Avanza el frame según simulationSpeed (ajusta 60 para tu FPS objetivo)
-    if (now - lastUpdate > (1000 / 60) / simulationSpeed) {
-      //pasa al siguiente frame
-      // Si estás en el último frame, no avances más
-      frameIndex = Math.min(frameIndex + 1, dataList.length - 1);
-      speed = dataList[frameIndex].velocity;
+
+    if (frameIndex < dataList.length - 1 && now - lastUpdate > (1000 / 60) / simulationSpeed) {
+      frameIndex++;
+      const currentData = dataList[frameIndex];
+
+      speed = currentData.velocity;
+      acceleration = currentData.acceleration;
+      altitude = currentData.altitude;
+      timestamp = currentData.timestamp;
       rotation = {
-        pitch: dataList[frameIndex].pitch,
-        yaw: dataList[frameIndex].yaw,
-        roll: dataList[frameIndex].roll
+        pitch: currentData.pitch,
+        yaw: currentData.yaw,
+        roll: currentData.roll
       };
+
+      rocket.stTilt(rotation);
+      allParticles.forEach(p => p.animate(speed, rotation));
+      allGraphs.forEach(graph => graph.animateChart(currentData));
+      bar.animate(altitude);
+
       lastUpdate = now;
+    } else if (frameIndex >= dataList.length - 1) {
+      simulationEnded = true; // ✅ Ya no se animará más
+      console.log("Simulación finalizada.");
     }
+  } else {
+    // Aún puedes renderizar la escena
+    rocket.stTilt(rotation);
+    allParticles.forEach(p => p.animate(speed, rotation));
   }
-  rocket.stTilt(rotation);
-  allParticles.forEach(particle => particle.animate(speed, rotation));
-  allGraphs.forEach(graph => graph.animateChart());
 }
+
 animate();

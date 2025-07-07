@@ -10,14 +10,12 @@
 export class AnimatedLineChart {
   /**
    * @param {string} canvasId - id del canvas donde se dibuja el gráfico
-   * @param {Array} dataList - lista de objetos con los datos
    * @param {Array} fields - array de strings con los nombres de los campos a graficar
    * @param {Array} labels - array de strings con las etiquetas para cada línea
    * @param {Array} colors - array de strings con los colores de cada línea
    */
-  constructor(canvasId, dataList, fields, labels, colors) {
+  constructor(canvasId, fields, labels, colors) {
     this.ctx = document.getElementById(canvasId).getContext('2d');
-    this.dataList = dataList;
     this.fields = fields;
     this.labels = labels;
     this.colors = colors;
@@ -46,24 +44,18 @@ export class AnimatedLineChart {
         }
       }
     });
-    this.i = 0;
   }
 
-  animateChart() {
-    // Si hay más datos, añade el siguiente punto al gráfico
-    if (this.i < this.dataList.length) {
-      // Usar solo la key 'timestamp' del JSON para el eje X
-      this.chart.data.labels.push(this.dataList[this.i].timestamp);
-      this.fields.forEach((field, idx) => {
-        this.chart.data.datasets[idx].data.push(this.dataList[this.i][field]);
-      });
-      this.chart.update();
-      this.i++;
-    }
+  animateChart(dataPoint) {
+    // dataPoint es un objeto con los datos del frame actual
+    // Agrega la etiqueta de tiempo al eje X
+    this.chart.data.labels.push(dataPoint.timestamp);
+
+    // Para cada campo configurado, agrega su valor correspondiente
+    this.fields.forEach((field, idx) => {
+      this.chart.data.datasets[idx].data.push(dataPoint[field]);
+    });
+
+    this.chart.update();
   }
 }
-
-// Ejemplo de uso:
-// import { initLineChart } from './graphs.js';
-// initLineChart(dataList, ['velocity', 'acceleration'], ['Velocidad (m/s)', 'Aceleración (m/s²)']);
-// Para añadir nuevas líneas en el futuro, puedes agregar más campos y etiquetas en los arrays.
