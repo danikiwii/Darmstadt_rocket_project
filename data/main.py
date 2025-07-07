@@ -1,64 +1,29 @@
+# This script calls all other scripts and unifies every JSON in one file.
+import subprocess
 import json
-import requests
+import os
 
-# Input and output file paths
-INPUT_FILE = "rocket_flight_data.json"
-OUTPUT_FILE = "weather_data.json"
+# Step 1: Run proces_data.py to generate result.json
+subprocess.run(["python", "data/process_data.py"], check=True)
 
-# Function to extract the last valid GPS coordinates from flight data
-def extract_coordinates(json_path):
-    try:
-        with open(json_path, "r") as f:
-            data = json.load(f)
-            samples = data.get("flight_data", [])
-            # Search for the last sample with valid latitude and longitude
-            for sample in reversed(samples):
-                lat = sample.get("latitude")
-                lon = sample.get("longitude")
-                if lat is not None and lon is not None:
-                    return lat, lon
-    except Exception as e:
-        print(f"Error reading coordinates: {e}")
-    return None, None
+# Step 2: Run api_weather_process.py to generate weather_data.json
+subprocess.run(["python", "data/api_weather_process.py"], check=True)
 
-# Function to fetch weather data from Open-Meteo API
-def get_weather_data(lat, lon):
-    url = "https://dwd-api.open-meteo.com/v1/forecast"
-    params = {
-        "latitude": lat,
-        "longitude": lon,
-        "hourly": "temperature_2m,precipitation",
-        "timezone": "auto"
-    }
-    try:
-        response = requests.get(url, params=params)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            print("Error fetching weather data:", response.status_code)
-    except Exception as e:
-        print("Request failed:", e)
-    return None
+# Step 3: Load both JSONs and combine them
+with open("data/processed_data.json", "r") as f:
+    flight_results = json.load(f)
+with open("data/weather_data.json", "r") as f:
+    weather = json.load(f)
 
-# Main execution
-def main():
-    print("Extracting coordinates from flight data...")
-    lat, lon = extract_coordinates(INPUT_FILE)
-    if lat is None or lon is None:
-        print("No valid coordinates found.")
-        return
+# Step 4: Combine into a single JSON
+combined = {
+    "flight_results": flight_results,
+    "weather": weather
+}
 
-    print(f"Coordinates found: Latitude={lat}, Longitude={lon}")
-    weather_data = get_weather_data(lat, lon)
-    if weather_data:
-        try:
-            with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-                json.dump(weather_data, f, ensure_ascii=False, indent=4)
-            print(f"Weather data saved to '{OUTPUT_FILE}'")
-        except Exception as e:
-            print("Error saving weather data:", e)
+# Step 5: Save the combined JSON
+with open("data/results.json", "w") as f:
+    json.dump(combined, f, indent=2)
 
-if __name__ == "__main__":
-    main()
-
+print("Result of all the process saved in results.json")
 

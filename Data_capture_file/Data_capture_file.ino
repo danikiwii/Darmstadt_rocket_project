@@ -30,6 +30,10 @@ const unsigned int MAX_DATA_POINTS = 2000;    // Reduced for memory
 const unsigned int SAMPLE_RATE_HZ = 10;
 const unsigned int SAMPLE_INTERVAL_US = 1000000 / SAMPLE_RATE_HZ;
 const float LAUNCH_THRESHOLD = 2.0;          // 2G threshold for launch detection
+const float CRASH_ALTITUDE_THRESHOLD = 20.0; // Fixed naming to match usage
+const float CRASH_ACCELERATION_THRESHOLD = 5.0; // Fixed naming
+const float CRASH_VELOCITY_THRESHOLD = -5.0; // Fixed naming
+const unsigned int CRASH_CONFIRMATION_SAMPLES = 5; // Fixed naming
 
 // Sensor Objects
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
@@ -40,6 +44,7 @@ SensorQMI8658 qmi;
 struct SensorData {
   unsigned long timestamp;
   float acceleration[3]; // x, y, z in g
+  float gyroscope[3];    // x, y, z in deg/s
   float pressure;       // in hPa
   float altitude;       // in meters
   float temperature;    // in °C
@@ -50,6 +55,12 @@ SensorData flightData[MAX_DATA_POINTS];
 volatile unsigned int dataIndex = 0;
 volatile bool launchDetected = false;
 volatile bool recordingComplete = false;
+volatile bool apogeeReached = false;
+volatile bool crashDetected = false;
+volatile unsigned int crashConfirmationCount = 0;
+float previousAltitude = 0;
+unsigned long previousAltitudeTime = 0;
+float verticalVelocity = 0;
 
 // Function Implementations
 void initDisplay() {
@@ -101,6 +112,40 @@ bool detectLaunch(float currentAccel) {
   return (currentAccel > baselineAccel * LAUNCH_THRESHOLD);
 }
 
+bool detectCrash(float currentAltitude, float currentAccelZ, unsigned long currentTime) {
+    // Calculate vertical velocity (m/s)
+    if (previousAltitudeTime > 0 && currentTime > previousAltitudeTime) {
+        float timeDelta = (currentTime - previousAltitudeTime) / 1000000.0; // Convert to seconds
+        verticalVelocity = (currentAltitude - previousAltitude) / timeDelta;
+    }
+    
+    // Update previous values for next calculation
+    previousAltitude = currentAltitude;
+    previousAltitudeTime = currentTime;
+    
+    // Only check for crash if we've reached significant altitude
+    if (currentAltitude > CRASH_ALTITUDE_THRESHOLD) {
+        apogeeReached = true;
+    }
+    
+    // Check for crash conditions
+    if (apogeeReached) {
+        bool crashCondition = (verticalVelocity < CRASH_VELOCITY_THRESHOLD) || 
+                             (currentAccelZ > CRASH_ACCELERATION_THRESHOLD);
+        
+        if (crashCondition) {
+            crashConfirmationCount++;
+            if (crashConfirmationCount >= CRASH_CONFIRMATION_SAMPLES) {
+                return true;
+            }
+        } else {
+            crashConfirmationCount = 0; // Reset if conditions aren't consistently met
+        }
+    }
+    
+    return false;
+}
+
 void displayStatus() {
   tft.setTextSize(1);
   tft.setCursor(0, 100);
@@ -111,6 +156,15 @@ void displayStatus() {
   }
   tft.printf("Alt: %.1f m\n", bmp.readAltitude(SEA_LEVEL_PRESSURE_HPA));
   tft.printf("Samples: %d/%d\n", dataIndex, MAX_DATA_POINTS);
+  tft.printf("Vel: %.1f m/s\n", verticalVelocity);
+  if (apogeeReached) {
+    tft.println("Apogee: YES");
+  }
+  if (crashDetected) {
+    tft.println("STATUS: CRASHED");
+  } else if (launchDetected) {
+    tft.println("STATUS: IN FLIGHT");
+  }
 }
 
 void dumpDataToSerial() {
@@ -122,6 +176,10 @@ void dumpDataToSerial() {
                  flightData[i].acceleration[0],
                  flightData[i].acceleration[1],
                  flightData[i].acceleration[2]);
+    Serial.printf("\"gyroscope\": {\"x\": %.2f, \"y\": %.2f, \"z\": %.2f},",
+                 flightData[i].gyroscope[0],
+                 flightData[i].gyroscope[1],
+                 flightData[i].gyroscope[2]);
     Serial.printf("\"pressure\": %.2f,", flightData[i].pressure);
     Serial.printf("\"altitude\": %.2f,", flightData[i].altitude);
     Serial.printf("\"temperature\": %.2f}", flightData[i].temperature);
@@ -137,7 +195,7 @@ void dumpDataToSerial() {
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(921600);
   while (!Serial);
   
   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI, TFT_CS);
@@ -155,17 +213,22 @@ void setup() {
 
 void loop() {
   static unsigned long lastSampleTime = 0;
+  static unsigned long lastDisplayUpdate = 0;
   unsigned long currentTime = micros();
 
   if (currentTime - lastSampleTime >= SAMPLE_INTERVAL_US && !recordingComplete) {
     lastSampleTime = currentTime;
     
     float accX, accY, accZ;
+    float gx, gy, gz;
     if (!qmi.getAccelerometer(accX, accY, accZ)) {
       Serial.println("Accelerometer read failed!");
       return;
     }
-    
+    if (!qmi.getGyroscope(gx, gy, gz)) {
+      Serial.println("Gyroscope read failed!");
+      return;
+    }
     float pressure = bmp.readPressure() / 100.0F;
     float altitude = bmp.readAltitude(SEA_LEVEL_PRESSURE_HPA);
     float temperature = bmp.readTemperature();
@@ -185,6 +248,9 @@ void loop() {
         flightData[dataIndex].acceleration[0] = accX;
         flightData[dataIndex].acceleration[1] = accY;
         flightData[dataIndex].acceleration[2] = accZ;
+        flightData[dataIndex].gyroscope[0] = gx;
+        flightData[dataIndex].gyroscope[1] = gy;
+        flightData[dataIndex].gyroscope[2] = gz;
         flightData[dataIndex].pressure = pressure;
         flightData[dataIndex].altitude = altitude;
         flightData[dataIndex].temperature = temperature;
@@ -197,9 +263,20 @@ void loop() {
         Serial.println("Data storage full");
       }
     }
+
+    // Check for crash
+    if (!crashDetected && launchDetected) {
+      if (detectCrash(altitude, accZ, currentTime)) {
+        crashDetected = true;
+        tft.fillScreen(ST77XX_RED);
+        tft.setCursor(0, 0);
+        tft.println("CRASH DETECTED!");
+        Serial.println("CRASH DETECTED!");
+        recordingComplete = true;
+      }
+    }
   }
 
-  static unsigned long lastDisplayUpdate = 0;
   if (millis() - lastDisplayUpdate > 200) {
     lastDisplayUpdate = millis();
     displayStatus();

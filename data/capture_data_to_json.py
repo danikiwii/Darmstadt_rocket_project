@@ -1,51 +1,176 @@
 import serial
-import time
 import json
+import argparse
+import logging
+import sys
+import time
+from datetime import datetime
 
-# Serial port configuration
-SERIAL_PORT = 'COM3'       # Replace with your actual serial port (e.g., '/dev/ttyUSB0' on Linux)
-BAUD_RATE = 115200         # Must match the baud rate used by the ESP32
-OUTPUT_FILE = 'rocket_flight_data.json'  # Output file where the JSON data will be saved
+# Constants
+MAX_JSON_SIZE = 10 * 1024 * 1024  # 10 MB maximum JSON size
+DEFAULT_BAUDRATE = 921600         # Faster than standard 115200
+BUFFER_READ_SIZE = 4096           # Read chunks of 4KB at a time
+TIMEOUT = 0.2                       # Serial port timeout in seconds
 
-# Function to capture JSON object sent over serial and save it to a file
-def capture_json_from_serial(port, baudrate, output_file):
-    with serial.Serial(port, baudrate, timeout=1) as ser:
-        print(f"Listening on {port} at {baudrate} baud...")
-        buffer = ""           # Buffer to accumulate the JSON text
-        capturing = False     # Flag to indicate whether we're inside a JSON object
+def setup_logging():
+    """Configure comprehensive logging to file and console"""
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s.%(msecs)03d - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        handlers=[
+            logging.FileHandler('flight_data_capture.log', mode='w'),
+            logging.StreamHandler()
+        ]
+    )
+    logging.info("Initialized logging system")
 
-        while True:
-            # Read a line from the serial port
-            line = ser.readline().decode(errors='ignore').strip()
+def validate_json_structure(data):
+    """Check if the received data has the expected structure"""
+    required_fields = ['timestamp', 'acceleration', 'altitude']
+    if not isinstance(data, dict):
+        return False
+    return all(field in data for field in required_fields)
 
-            if not line:
-                continue  # Skip empty lines
-
-            # Detect the start of the JSON object
-            if line.startswith('{') and not capturing:
-                capturing = True
-                buffer = line + '\n'
-                print("Start of JSON object detected")
-
-            # Detect the end of the JSON object
-            elif line.startswith('}') and capturing:
-                buffer += line
-                print("End of JSON object detected")
-                break  # Exit the loop once the full JSON object is received
-
-            # Accumulate lines inside the JSON object
-            elif capturing:
-                buffer += line + '\n'
-
-        # Try to parse the JSON and save it to a file
+def capture_flight_data(port, baudrate, output_file):
+    """
+    Capture JSON flight data from serial port with optimized performance
+    and robust error handling.
+    
+    Args:
+        port (str): Serial port (e.g., 'COM3' or '/dev/ttyUSB0')
+        baudrate (int): Baud rate (e.g., 921600)
+        output_file (str): Path to save JSON data
+    """
+    logging.info(f"Starting capture on {port} at {baudrate} baud")
+    start_time = time.time()
+    retry_count = 0
+    max_retries = 3
+    retry_delay = 5
+    
+    while retry_count < max_retries:
         try:
-            data = json.loads(buffer)
-            with open(output_file, 'w') as f:
-                json.dump(data, f, indent=2)
-            print(f"Data saved to {output_file}")
-        except json.JSONDecodeError as e:
-            print("Error decoding JSON:", e)
+            with serial.Serial(
+                port=port,
+                baudrate=baudrate,
+                bytesize=serial.EIGHTBITS,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                timeout=TIMEOUT
+            ) as ser:
+                
+                logging.info(f"Successfully connected to {port}")
+                buffer = bytearray()
+                json_started = False
+                bytes_received = 0
+                
+                while True:
+                    # Read available data in chunks for better performance
+                    chunk = ser.read(BUFFER_READ_SIZE)
+                    if not chunk:
+                        continue
+                    
+                    bytes_received += len(chunk)
+                    buffer.extend(chunk)
+                    
+                    # Check for maximum size to prevent memory issues
+                    if len(buffer) > MAX_JSON_SIZE:
+                        logging.error("Maximum JSON size exceeded")
+                        raise ValueError("JSON data too large")
+                    
+                    # Check for complete JSON (start with { and end with })
+                    if not json_started and b'{' in buffer:
+                        json_started = True
+                        # Trim anything before the opening brace
+                        buffer = buffer[buffer.index(b'{'):]
+                        logging.debug("JSON start detected")
+                    
+                    if json_started and b'}' in buffer:
+                        # Extract the complete JSON
+                        json_end = buffer.index(b'}') + 1
+                        json_data = buffer[:json_end]
+                        remaining_data = buffer[json_end:]
+                        
+                        try:
+                            # Decode and validate JSON
+                            decoded = json_data.decode('utf-8', errors='strict')
+                            data = json.loads(decoded)
+                            
+                            if validate_json_structure(data):
+                                # Save the valid JSON data
+                                with open(output_file, 'w') as f:
+                                    json.dump(data, f, indent=2)
+                                
+                                transfer_time = time.time() - start_time
+                                transfer_rate = bytes_received / (transfer_time * 1024)
+                                
+                                logging.info(f"Successfully saved data to {output_file}")
+                                logging.info(f"Transfer stats: {bytes_received/1024:.1f} KB "
+                                            f"in {transfer_time:.2f} seconds "
+                                            f"({transfer_rate:.1f} KB/s)")
+                                return
+                            
+                            logging.warning("JSON structure validation failed")
+                            
+                        except (UnicodeDecodeError, json.JSONDecodeError) as e:
+                            logging.error(f"JSON decoding failed: {str(e)}")
+                        
+                        # Reset buffer with remaining data
+                        buffer = remaining_data
+                        json_started = False
+                
+        except serial.SerialException as e:
+            retry_count += 1
+            if retry_count < max_retries:
+                logging.warning(f"Attempt {retry_count} failed: {str(e)}")
+                logging.info(f"Retrying in {retry_delay} seconds...")
+                time.sleep(retry_delay)
+            else:
+                logging.error(f"Max retries reached. Last error: {str(e)}")
+                raise
+        
+        except Exception as e:
+            logging.error(f"Unexpected error: {str(e)}")
+            raise
 
-# Call this function after the rocket has landed and the ESP32 is connected to the computer
-# Uncomment the line below to run the capture
-# capture_json_from_serial(SERIAL_PORT, BAUD_RATE, OUTPUT_FILE)
+def main():
+    """Main entry point with argument parsing"""
+    parser = argparse.ArgumentParser(
+        description="Rocket Flight Data Capture Tool",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        '--port',
+        default='COM3',
+        help="Serial port name (COM3 on Windows, /dev/ttyUSB0 on Linux)"
+    )
+    parser.add_argument(
+        '--baud',
+        type=int,
+        default=DEFAULT_BAUDRATE,
+        help="Baud rate for serial communication"
+    )
+    parser.add_argument(
+        '--output',
+        default='data/rocket_flight_data.json',
+        help="Output JSON file path"
+    )
+    
+    args = parser.parse_args()
+    
+    try:
+        setup_logging()
+        logging.info(f"Starting rocket flight data capture")
+        logging.info(f"Configuration: Port={args.port}, Baud={args.baud}, Output={args.output}")
+        
+        capture_flight_data(args.port, args.baud, args.output)
+        
+    except Exception as e:
+        logging.error(f"Fatal error: {str(e)}")
+        sys.exit(1)
+        
+    logging.info("Capture completed successfully")
+    sys.exit(0)
+
+if __name__ == "__main__":
+    main()
