@@ -195,7 +195,7 @@ void dumpDataToSerial() {
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(921600);
   while (!Serial);
   
   SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI, TFT_CS);
