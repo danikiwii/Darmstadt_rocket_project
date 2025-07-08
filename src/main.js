@@ -16,6 +16,7 @@ let frameIndex = 0
 let simulationSpeed = 1
 let lastUpdate = performance.now()
 let speed = 0
+let timestamp = 0
 let acceleration = 0
 let altitude = 0
 let rotation = { pitch: 0, yaw: 0, roll: 0 }
@@ -24,7 +25,7 @@ let allGraphs = []
 let bar
 let simulationEnded = false
 
-fetch('./data/weather_data.json')
+fetch('../data/weather_data.json')
   .then(r => r.json())
   .then(d => {
     const w = Array.isArray(d) ? d[0] : d
@@ -145,9 +146,9 @@ function animate() {
       if (speed < 0) speed = 0; // Evitar velocidades negativas
       if (altitude < 0) {
         altitude = 0; // Evitar altitudes negativas
-        pitch = 0;
-        yaw = 0;
-        roll = 0;
+        rotation.pitch = 0;
+        rotation.yaw = 0;
+        rotation.roll = 0;
       }
 
       rocket.stTilt(rotation);

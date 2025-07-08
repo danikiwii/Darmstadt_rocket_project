@@ -70,18 +70,18 @@ def process(samples):
     #  CAMBIO: ahora interpolamos con 1000 puntos
     t_interp = np.linspace(tiempo_norm[0], tiempo_norm[-1], 1000)
 
-    pol_alt = ajustar_polinomio(tiempo_norm, altitudes, grado=6)
+    pol_alt = ajustar_polinomio(tiempo_norm, altitudes, grado=4)
     alt_ajustada = pol_alt(tiempo_norm)
     alt_interp = pol_alt(t_interp)
 
     pol_roll = ajustar_polinomio(tiempo_norm, roll, grado=8)
-    roll_interp = pol_roll(t_interp) / 100
+    roll_interp = pol_roll(t_interp)
 
     pol_pitch = ajustar_polinomio(tiempo_norm, pitch, grado=8)
-    pitch_interp = pol_pitch(t_interp) / 100
+    pitch_interp = pol_pitch(t_interp)
 
     pol_yaw = ajustar_polinomio(tiempo_norm, yaw, grado=8)
-    yaw_interp = pol_yaw(t_interp) / 100
+    yaw_interp = pol_yaw(t_interp)
 
     velocidad = derivar_1D(tiempo_norm, alt_ajustada)
     aceleracion_lineal = derivar_1D(tiempo_norm, velocidad)
