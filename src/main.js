@@ -19,7 +19,7 @@ rocket.load(scene);
 // Variables para la simulación
 let dataList = [];
 let frameIndex = 0;
-let simulationSpeed = 1; // 1 = tiempo real, 2 = doble de rápido, etc.
+let simulationSpeed = 2; // 1 = tiempo real, 2 = doble de rápido, etc.
 let lastUpdate = performance.now();
 let speed = 0;
 let acceleration = 0;

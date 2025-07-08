@@ -18,9 +18,9 @@ velocity = [max(0, v) for v in velocity_raw]
 acceleration = np.gradient(velocity, 0.01).tolist()
 
 # Funciones suaves para roll, pitch, yaw
-roll = [0.4 * np.sin(0.8 * t) for t in timestamps]      # amplitud 0.05, frecuencia baja
-pitch = [0.5 * np.cos(1.2 * t) for t in timestamps]     # pequeño coseno suave
-yaw = [(0.3 * np.sin(0.5 * t)) % 360 for t in timestamps]  # muy suave
+roll = [0.5*t for t in timestamps]      # amplitud 0.05, frecuencia baja
+pitch = [0.05 * np.cos( 5* t) for t in timestamps]     # pequeño coseno suave
+yaw = [(0.05 * np.sin(5 * t))  for t in timestamps]  # muy suave
 
 data = {
     "timestamp": timestamps,
