@@ -31,16 +31,13 @@ print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
 # Obtener datos horarios
 hourly = response.Hourly()
 hourly_data = {
-    "date": pd.date_range(
-        start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
-        end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
-        freq=pd.Timedelta(seconds=hourly.Interval())
-    ),
+    "date": pd.to_datetime(hourly.Time(), unit="s", utc=True),
     "temperature_2m": hourly.Variables(0).ValuesAsNumpy(),
     "relative_humidity_2m": hourly.Variables(1).ValuesAsNumpy(),
     "precipitation": hourly.Variables(2).ValuesAsNumpy(),
     "wind_speed_10m": hourly.Variables(3).ValuesAsNumpy()
 }
+
 
 # Crear DataFrame y filtrar para las 14:00
 hourly_dataframe = pd.DataFrame(data=hourly_data)
