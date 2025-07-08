@@ -65,7 +65,7 @@ const rocketParticles_orange = new Particles({
   color: 0xffa500, // naranja brillante original
   size: 0.15,
   yRange: [-5, -4.25],
-  speedRatio: 0.05
+  speedRatio: 0.001
 });
 const rocketParticles_yellow = new Particles({
   count: 10,
@@ -73,7 +73,7 @@ const rocketParticles_yellow = new Particles({
   color: 0xFFD580, // amarillo brillante original
   size: 0.15,
   yRange: [-6, -4.25],
-  speedRatio: 0.05
+  speedRatio: 0.001
 });
 const rocketParticles_gray = new Particles({
   count: 20,
@@ -81,7 +81,7 @@ const rocketParticles_gray = new Particles({
   color: 0xCCCCCC, // gris brillante original
   size: 0.15,
   yRange: [-10, -4.25],
-  speedRatio: 0.05
+  speedRatio: 0.001
 });
 
 
@@ -91,7 +91,7 @@ const rocketParticles_gray = new Particles({
       color: 0xffffff,
       size: 0.35,
       yRange: [-50, 50],
-      speedRatio: 12
+      speedRatio: 0.2
     });
     allParticles = [stars, rocketParticles_orange, rocketParticles_yellow, rocketParticles_gray];
     allParticles.forEach(particle => particle.addTo(scene));
@@ -110,7 +110,7 @@ const rocketParticles_gray = new Particles({
     const accelerationChart = new AnimatedLineChart(
       'accelerationChart',
       ['acceleration'],
-      ['Acceleration (m/s²)'],
+      ['Acceleration (G)'],
       ['rgb(255,99,132)'],
   
 
@@ -162,7 +162,12 @@ function animate() {
         roll: currentData.roll
       };
       if (speed < 0) speed = 0; // Evitar velocidades negativas
-      if (altitude < 0) altitude = 0; // Evitar altitudes negativas
+      if (altitude < 0) {
+        altitude = 0; // Evitar altitudes negativas
+        pitch = 0;
+        yaw = 0;
+        roll = 0;
+      }
 
       rocket.stTilt(rotation);
       allParticles.forEach(p => p.animate(speed, rotation));

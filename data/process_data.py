@@ -57,7 +57,7 @@ def process(samples):
     giroscopio = []
 
     for s in samples:
-        timestamps.append(s["timestamp"])
+        timestamps.append(s["timestamp"]/100)  # Convertir a segundos
         altitudes.append(s["altitude"])
         aceleracion.append(s["acceleration"])
         giroscopio.append(s["gyroscope"])
@@ -90,7 +90,7 @@ def process(samples):
     vel_interp = pol_vel(t_interp)
 
     pol_acc = ajustar_polinomio(tiempo_norm, aceleracion_lineal, grado=3)
-    acc_interp = pol_acc(t_interp)
+    acc_interp = pol_acc(t_interp)/9.81  # Convertir a g's
 
     return {
         "timestamp": t_interp.tolist(),
