@@ -75,7 +75,7 @@ html, body {
   top: 50%;
   transform: translateY(-50%);
   width: 60px;
-  height: 200px;
+  height: 400px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -89,7 +89,7 @@ html, body {
 
 #altitude-bar {
   width: 24px;
-  height: 160px;
+  height: 320px;
   background: #222;
   border-radius: 10px;
   box-shadow: 0 0 8px #00c3ff99;
@@ -112,7 +112,7 @@ html, body {
   bottom: 0;
   height: 20px; /* valor inicial, se actualizará por JS */
   min-height: 20px;
-  max-height: 160px;
+  max-height: 320px;
 }
 
 

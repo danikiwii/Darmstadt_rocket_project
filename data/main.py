@@ -22,7 +22,7 @@ combined = {
 }
 
 # Step 5: Save the combined JSON
-with open("data/result.json", "w") as f:
+with open("result.json", "w") as f:
     json.dump(combined, f, indent=2)
 
 print("Result of all the process saved in result.json")

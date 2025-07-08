@@ -3,7 +3,7 @@ import * as THREE from 'three';
 //-----------------------------DEFINING THE PARICLES CLASS
 
 
-class Particles {
+export class Particles {
   constructor({
     count = 200,
     area = 60,
@@ -73,46 +73,3 @@ class Particles {
 }
 
 
-//---------------------------------------------------INSTANCIATE THE PARTICLES
-
-const stars = new Particles({
-  count: 250,
-  area: 60,
-  color: 0xffffff,
-  size: 0.15,
-  yRange: [-50, 50],
-  speedRatio: 2
-});
-
-const rocketParticles_orange = new Particles({
-  count: 10,
-  area: 0.5,
-  color: 0xffa500,
-  size: 0.15,
-  yRange: [-5, -4.25 ],
-  speedRatio: 0.002,
-});
-const rocketParticles_yellow = new Particles({
-  count: 10,
-  area: 0.5,
-  color: 0xFFD580,
-  size: 0.15,
-  yRange: [-6, -4.25 ],
-  speedRatio: 0.002,
-});
-const rocketParticles_gray = new Particles({
-  count: 20,
-  area: 0.25,
-  color: 0xCCCCCC, // Gris medio
-  size: 0.15,
-  yRange: [-10, -4.25],
-  speedRatio: 0.003,
-});
-
-export const allParticles = [
-  stars, 
-  rocketParticles_orange, 
-  rocketParticles_yellow,
-  rocketParticles_gray
-];
-// Combine the  stars orange and yellow particles into a single object

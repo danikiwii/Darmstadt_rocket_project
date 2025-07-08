@@ -1,14 +1,14 @@
 import * as THREE from 'https://unpkg.com/three@0.153.0/build/three.module.js';
-import { allParticles } from './Particles.js';    
+  
 
 
 export function createScene(canvas) {
   //scene (with lights and particles)
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x202030);
-  scene.fog = new THREE.FogExp2(0x202030, 0.005); // Añadir niebla para dar profundidad
+  scene.fog = new THREE.FogExp2(0x202030, 0.01); // Añadir niebla para dar profundidad
   createLights(scene);
-  allParticles.forEach(particle => particle.addTo(scene));  
+  // Las partículas se añaden desde main.js, no aquí
 
   //camera
   const camera = new THREE.PerspectiveCamera(60, canvas.clientWidth / canvas.clientHeight,0.1,1000);
@@ -25,34 +25,32 @@ export function createScene(canvas) {
 
 
 function createLights(space) {
-// CREATING LIGHTS
-  const sideLight = new THREE.DirectionalLight(0xffffff , 0.5);
-  sideLight.position.set(15, 5, 7.5);
-  sideLight.castShadow = true;
-  sideLight.shadow.mapSize.width = 1024;
-  sideLight.shadow.mapSize.height = 1024;
-  space.add(sideLight);
-
-  const sunLight1 = new THREE.DirectionalLight(0xFFB347, 5); // Amarillo cálido
-  sunLight1.position.set(-0.25, 10, -0.1);
-  sunLight1.target.position.set(0, 0, 0);
-  sunLight1.castShadow = true;
-  sunLight1.shadow.mapSize.width = 4096;
-  sunLight1.shadow.mapSize.height = 4096;
-  space.add(sunLight1);
-
-  const sunLight2 = new THREE.DirectionalLight(0xFF7043, 5); // Amarillo cálido
-  sunLight2.position.set(-0.0, 10, -0.0);
-  sunLight2.target.position.set(0, 0, 0);
-  sunLight2.castShadow = true;
-  sunLight2.shadow.mapSize.width = 4096;
-  sunLight2.shadow.mapSize.height = 4096;
-  space.add(sunLight2);
-
-  const engineLight = new THREE.SpotLight(0xFF7043, 15); // Amarillo cálido
-  engineLight.position.set(0.0, 0, 0.0);
-  space.add(engineLight);
-
-  const ambientLight = new THREE.AmbientLight(0xB0C4DE , 0.1);
+  // Luz ambiental blanca más intensa
+  const ambientLight = new THREE.AmbientLight(0xfff8e7 , 0.2); // color blanco, intensidad 1.0
   space.add(ambientLight);
+
+  // Luz principal direccional (sol) con intensidad moderada
+  const sunLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  sunLight.position.set(10, 15, 10);
+  sunLight.castShadow = true;
+  sunLight.shadow.mapSize.width = 2048;
+  sunLight.shadow.mapSize.height = 2048;
+  sunLight.shadow.radius = 4;
+  sunLight.shadow.bias = -0.0005;
+  space.add(sunLight);
+
+  // Luz de relleno fría (espacio)
+  const fillLight = new THREE.DirectionalLight(0x6699ff, 0.3);
+  fillLight.position.set(-5, 5, -5);
+  space.add(fillLight);
+
+const warmDirectionalLight = new THREE.DirectionalLight(0xff6600, 0.5); // naranja cálido fuerte
+warmDirectionalLight.position.set(0, -2, 5);  // viene un poco desde arriba y delante del cohete
+warmDirectionalLight.castShadow = true;
+warmDirectionalLight.shadow.mapSize.width = 2048;
+warmDirectionalLight.shadow.mapSize.height = 2048;
+warmDirectionalLight.shadow.radius = 3;
+warmDirectionalLight.shadow.bias = -0.0005;
+space.add(warmDirectionalLight);
+
 }

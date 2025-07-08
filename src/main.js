@@ -1,0 +1,161 @@
+import { createScene } from './simulation/scene.js';
+import { Rocket} from './simulation/rocket.js';
+import { setupControls } from './simulation/controls.js';
+import { Particles } from './simulation/Particles.js';
+import {AnimatedLineChart } from './graphs/graphs.js';
+import { AltitudeBar } from './graphs/heightBar.js';
+
+
+
+const canvas = document.getElementById('three-canvas');
+const { scene, camera, renderer} = createScene(canvas);
+const controls = setupControls(camera, renderer);
+const rocket = new Rocket('assets/models/Sagitta2.glb');
+//can't put a relative path here, it will not work in the browser
+
+rocket.load(scene);
+
+
+// Variables para la simulación
+let dataList = [];
+let frameIndex = 0;
+let simulationSpeed = 2; // 1 = tiempo real, 2 = doble de rápido, etc.
+let lastUpdate = performance.now();
+let speed = 0;
+let acceleration = 0;
+let altitude = 0;
+let timestamp = 0;
+let rotation = { pitch: 0, yaw: 0, roll: 0 };
+let allParticles = [];
+let allGraphs = [];
+let bar;
+
+
+
+// Instanciar partículas y cargar datos
+fetch('../generated_polynomical_data.json')
+  .then(res => res.json())
+  .then(json => {
+    const keys = Object.keys(json.flight_results);
+    const length = json.flight_results[keys[0]].length;
+    dataList = Array.from({ length }, (_, i) => {
+      const obj = {};
+      for (const key of keys) obj[key] = json.flight_results [key][i];
+      return obj;
+    });
+
+    // Instanciar partículas con dataList si lo necesitas para animación basada en datos
+const rocketParticles_orange = new Particles({
+  count: 10,
+  area: 0.5,
+  color: 0xffa500, // naranja brillante original
+  size: 0.15,
+  yRange: [-5, -4.25],
+  speedRatio: 0.002 
+});
+const rocketParticles_yellow = new Particles({
+  count: 10,
+  area: 0.5,
+  color: 0xFFD580, // amarillo brillante original
+  size: 0.15,
+  yRange: [-6, -4.25],
+  speedRatio: 0.002
+});
+const rocketParticles_gray = new Particles({
+  count: 20,
+  area: 0.25,
+  color: 0xCCCCCC, // gris brillante original
+  size: 0.15,
+  yRange: [-10, -4.25],
+  speedRatio: 0.002
+});
+
+
+    const stars = new Particles({
+      count: 200,
+      area: 60,
+      color: 0xffffff,
+      size: 0.35,
+      yRange: [-50, 50],
+      speedRatio: 1
+    });
+    allParticles = [stars, rocketParticles_orange, rocketParticles_yellow, rocketParticles_gray];
+    allParticles.forEach(particle => particle.addTo(scene));
+
+
+
+    // Chart 1: Speed
+    const velocityChart = new AnimatedLineChart(
+      'speedChart',
+      ['velocity'],
+      ['Speed (m/s)'],
+      ['rgb(75,192,192)'],
+  
+    );
+    // Chart 2: Acceleration
+    const accelerationChart = new AnimatedLineChart(
+      'accelerationChart',
+      ['acceleration'],
+      ['Acceleration (m/s²)'],
+      ['rgb(255,99,132)'],
+  
+
+    );
+    // Chart 4: Altitude
+    const altitudeChart = new AnimatedLineChart(
+      'altitudeChart',
+      ['altitude'],
+      ['Altitude (m)'],
+      ['rgb(255,205,86)'],
+ 
+    );
+     // Atitude Bar
+    bar = new AltitudeBar(  
+      dataList
+    );
+    allGraphs = [velocityChart, accelerationChart, altitudeChart];
+
+  });
+
+
+  let simulationEnded = false; // Variable para controlar el fin de la simulación
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+
+  if (dataList.length > 0 && !simulationEnded) {
+    const now = performance.now();
+
+    if (frameIndex < dataList.length - 1 && now - lastUpdate > (1000 / 60) / simulationSpeed) {
+      frameIndex++;
+      const currentData = dataList[frameIndex];
+
+      speed = currentData.velocity;
+      acceleration = currentData.acceleration;
+      altitude = currentData.altitude;
+      timestamp = currentData.timestamp;
+      rotation = {
+        pitch: currentData.pitch,
+        yaw: currentData.yaw,
+        roll: currentData.roll
+      };
+
+      rocket.stTilt(rotation);
+      allParticles.forEach(p => p.animate(speed, rotation));
+      allGraphs.forEach(graph => graph.animateChart(currentData));
+      bar.animate(altitude);
+
+      lastUpdate = now;
+    } else if (frameIndex >= dataList.length - 1) {
+      simulationEnded = true; // ✅ Ya no se animará más
+      console.log("Simulación finalizada.");
+    }
+  } else {
+    // Aún puedes renderizar la escena
+    rocket.stTilt(rotation);
+    allParticles.forEach(p => p.animate(speed, rotation));
+  }
+}
+
+animate();
