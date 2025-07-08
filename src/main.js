@@ -33,7 +33,7 @@ let bar;
 
 
 // Instanciar partículas y cargar datos
-fetch('../../docs/generated_polynomical_data.json')
+fetch('../generated_polynomical_data.json')
   .then(res => res.json())
   .then(json => {
     const keys = Object.keys(json.flight_results);
