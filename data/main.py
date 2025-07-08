@@ -7,6 +7,9 @@ import os
 subprocess.run(["python", "data/process_data.py"], check=True)
 
 # Step 2: Run api_weather_process.py to generate weather_data.json
+subprocess.run(["python", "data/api.py"], check=True)
+
+#Step 3: Process the weather data to only pick the data at 14:00
 subprocess.run(["python", "data/api_weather_process.py"], check=True)
 
 # Step 3: Load both JSONs and combine them
