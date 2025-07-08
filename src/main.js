@@ -19,7 +19,7 @@ rocket.load(scene);
 // Variables para la simulación
 let dataList = [];
 let frameIndex = 0;
-let simulationSpeed = 0.1; // 1 = tiempo real, 2 = doble de rápido, etc.
+let simulationSpeed = 1; // 1 = tiempo real, 2 = doble de rápido, etc.
 let lastUpdate = performance.now();
 let speed = 0;
 let acceleration = 0;
@@ -33,7 +33,7 @@ let bar;
 
 
 // Instanciar partículas y cargar datos
-fetch('../../data/result.json')
+fetch('../../data/generated_polynomical_data.json')
   .then(res => res.json())
   .then(json => {
     const keys = Object.keys(json.flight_results);
@@ -45,44 +45,44 @@ fetch('../../data/result.json')
     });
 
     // Instanciar partículas con dataList si lo necesitas para animación basada en datos
-    const rocketParticles_orange = new Particles({
-      count: 10,
-      area: 0.5,
-      color: 0xffa500,
-      size: 0.15,
-      yRange: [-5, -4.25],
-      speedRatio: 0.002
-    });
-    const rocketParticles_yellow = new Particles({
-      count: 10,
-      area: 0.5,
-      color: 0xFFD580,
-      size: 0.15,
-      yRange: [-6, -4.25],
-      speedRatio: 0.002
-    });
-    const rocketParticles_gray = new Particles({
-      count: 20,
-      area: 0.25,
-      color: 0xCCCCCC,
-      size: 0.15,
-      yRange: [-10, -4.25],
-      speedRatio: 2
-    });
+const rocketParticles_orange = new Particles({
+  count: 10,
+  area: 0.5,
+  color: 0xffa500, // naranja brillante original
+  size: 0.15,
+  yRange: [-5, -4.25],
+  speedRatio: 0.002 
+});
+const rocketParticles_yellow = new Particles({
+  count: 10,
+  area: 0.5,
+  color: 0xFFD580, // amarillo brillante original
+  size: 0.15,
+  yRange: [-6, -4.25],
+  speedRatio: 0.002
+});
+const rocketParticles_gray = new Particles({
+  count: 20,
+  area: 0.25,
+  color: 0xCCCCCC, // gris brillante original
+  size: 0.15,
+  yRange: [-10, -4.25],
+  speedRatio: 0.002
+});
+
+
     const stars = new Particles({
-      count: 250,
+      count: 200,
       area: 60,
       color: 0xffffff,
-      size: 0.15,
+      size: 0.35,
       yRange: [-50, 50],
-      speedRatio: 20
+      speedRatio: 1
     });
     allParticles = [stars, rocketParticles_orange, rocketParticles_yellow, rocketParticles_gray];
     allParticles.forEach(particle => particle.addTo(scene));
 
 
-    //gráficos-------------------
-    const animationSpeed = 100; // Velocidad de animación en milisegundos
 
     // Chart 1: Speed
     const velocityChart = new AnimatedLineChart(
