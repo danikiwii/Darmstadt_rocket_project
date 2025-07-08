@@ -38,8 +38,8 @@ export class AnimatedLineChart {
         },
         scales: {
           x: {
-            title: { display: true }, // Oculta la leyenda del eje X
-            ticks: { display: true }  // Oculta los números del eje X
+            title: { display: false }, // Oculta la leyenda del eje X
+            ticks: { display: false }  // Oculta los números del eje X
           },
           y: { title: { display: true } }
         }
