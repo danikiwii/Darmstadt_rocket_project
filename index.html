@@ -5,12 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Rocket Simulation</title>
   <link rel="stylesheet" href="./styles.css" />
+  <style>
+    /* Estilo para el recuadro de información meteorológica */
+    #weather-info {
+      position: absolute;
+      top: 20px;
+      right: 910px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      padding: 10px 15px;
+      border-radius: 10px;
+      font-family: sans-serif;
+      font-size: 14px;
+      z-index: 10;
+    }
+  </style>
 </head>
 <body>
   <div id="container">
     <div id="simulation">
       <!-- Aquí se monta Three.js -->
       <canvas id="three-canvas"></canvas>
+
       <!-- Barra de altura -->
       <div id="altitude-bar-container">
         <div id="altitude-bar">
@@ -18,7 +34,16 @@
         </div>
         <div id="altitude-label">0 m</div>
       </div>
+
+      <!-- Panel de datos meteorológicos -->
+      <div id="weather-info">
+        <div><strong>Time:</strong> <span id="w-time">--</span></div>
+        <div><strong>Temp:</strong> <span id="w-temp">--</span> °C</div>
+        <div><strong>Precip:</strong> <span id="w-precip">--</span> mm</div>
+        <div><strong>Wind:</strong> <span id="w-wind">--</span> m/s</div>
+      </div>
     </div>
+
     <div id="interface">
       <div id="charts">
         <!-- Aquí puedes colocar gráficos, datos, etc. -->
@@ -29,19 +54,37 @@
       </div>
     </div>
   </div>
+
   <!-- Carga Chart.js como script global UMD antes de tus módulos -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
-    "three/examples/jsm/loaders/GLTFLoader.js": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/loaders/GLTFLoader.js",
-    "three/examples/jsm/controls/OrbitControls.js": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/controls/OrbitControls.js"
-  }
-}
-</script>
-  <script type="module" src="./src/main.js"></script>
- <!--<script type="module" src="./src/graphs/main.js"></script>-->
 
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+      "three/examples/jsm/loaders/GLTFLoader.js": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/loaders/GLTFLoader.js",
+      "three/examples/jsm/controls/OrbitControls.js": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/controls/OrbitControls.js"
+    }
+  }
+  </script>
+
+  <!-- Script principal de la simulación -->
+  <script type="module" src="./src/main.js"></script>
+
+  <!-- Script para cargar los datos del JSON y mostrarlos -->
+  <script>
+    fetch('./weather_data.json')
+      .then(response => response.json())
+      .then(data => {
+        const weather = data.time ? data : data[0];
+        document.getElementById('w-time').textContent = weather.time;
+        document.getElementById('w-temp').textContent = weather.temperature_2m.toFixed(1);
+        document.getElementById('w-precip').textContent = weather.precipitation.toFixed(1);
+        document.getElementById('w-wind').textContent = weather.wind_speed_10m.toFixed(1);
+      })
+      .catch(err => {
+        console.error('No se pudo cargar weather_data.json:', err);
+      });
+  </script>
 </body>
 </html>
