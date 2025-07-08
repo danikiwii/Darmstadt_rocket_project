@@ -28,7 +28,7 @@ fetch('./data/weather_data.json')
   .then(r => r.json())
   .then(d => {
     const w = Array.isArray(d) ? d[0] : d
-    document.getElementById('w-time').textContent = w.time
+    document.getElementById('w-time').textContent = w.time.slice(-5)
     document.getElementById('w-temp').textContent = w.temperature_2m.toFixed(1)
     document.getElementById('w-precip').textContent = w.precipitation.toFixed(1)
     document.getElementById('w-wind').textContent = w.wind_speed_10m.toFixed(1)
