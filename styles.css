@@ -129,13 +129,18 @@ html, body {
 #weather-info {
   position: absolute;
   top: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0.6);
-  color: #fff;
-  padding: 10px 15px;
-  border-radius: 10px;
-  font-family: sans-serif;
-  font-size: 14px;
+  right: 830px;
+  background: transparent;
+  color: #f0f0f0;
+  padding: 12px 18px;
+  border-radius: 16px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 15px;
+  line-height: 1.4;
   z-index: 10;
+  box-shadow: 0 0 10px #00c3ff33;
+  backdrop-filter: blur(6px); /* suaviza el fondo sin añadir color */
 }
+
+
 
