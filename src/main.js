@@ -5,35 +5,44 @@ import { Particles } from './simulation/Particles.js'
 import { AnimatedLineChart } from './graphs/graphs.js'
 import { AltitudeBar } from './graphs/heightBar.js'
 
-const canvas = document.getElementById('three-canvas')
-const { scene, camera, renderer } = createScene(canvas)
-const controls = setupControls(camera, renderer)
-const rocket = new Rocket('assets/models/Sagitta2.glb')
-rocket.load(scene)
+const canvas = document.getElementById('three-canvas');
+const { scene, camera, renderer} = createScene(canvas);
+const controls = setupControls(camera, renderer);
+const rocket = new Rocket('assets/models/Sagitta2.glb');
+//can't put a relative path here, it will not work in the browser
 
-let dataList = []
-let frameIndex = 0
-let simulationSpeed = 1
-let lastUpdate = performance.now()
-let speed = 0
-let acceleration = 0
-let altitude = 0
-let rotation = { pitch: 0, yaw: 0, roll: 0 }
-let allParticles = []
-let allGraphs = []
-let bar
-let simulationEnded = false
+rocket.load(scene);
 
-fetch('./data/weather_data.json')
-  .then(r => r.json())
-  .then(d => {
-    const w = Array.isArray(d) ? d[0] : d
-    document.getElementById('w-time').textContent = w.time.slice(-5)
-    document.getElementById('w-temp').textContent = w.temperature_2m.toFixed(1)
-    document.getElementById('w-precip').textContent = w.precipitation.toFixed(1)
-    document.getElementById('w-wind').textContent = w.wind_speed_10m.toFixed(1)
-  })
-  .catch(console.error)
+
+// Variables para la simulación
+let dataList = [];
+let frameIndex = 0;
+let simulationSpeed = 1; // 1 = tiempo real, 2 = doble de rápido, etc.
+let lastUpdate = performance.now();
+let speed = 0;
+let acceleration = 0;
+let altitude = 0;
+let timestamp = 0;
+let rotation = { pitch: 0, yaw: 0, roll: 0 };
+let allParticles = [];
+let allGraphs = [];
+let bar;
+
+
+
+// Instanciar partículas y cargar datos
+/*fetch('../result.json')
+  .then(res => res.json())
+  .then(json => {
+    const keys = Object.keys(json.flight_results);
+    const length = json.flight_results[keys[0]].length;
+    dataList = Array.from({ length }, (_, i) => {
+      const obj = {};
+      for (const key of keys) obj[key] = json.flight_results [key][i];
+      return obj;
+    });
+    
+*/
 
 fetch('../processed_data_interp.json')
   .then(res => res.json())
@@ -104,17 +113,25 @@ function animate() {
   if (dataList.length && !simulationEnded) {
     const now = performance.now()
     if (frameIndex < dataList.length - 1 && now - lastUpdate > (1000 / 60) / simulationSpeed) {
-      frameIndex++
-      const d = dataList[frameIndex]
-      speed = d.velocity
-      acceleration = d.acceleration
-      altitude = d.altitude
-      rotation = { pitch: d.pitch, yaw: d.yaw, roll: d.roll }
-      rocket.stTilt(rotation)
-      allParticles.forEach(p => p.animate(speed, rotation))
-      allGraphs.forEach(g => g.animateChart(d))
-      bar.animate(altitude)
-      lastUpdate = now
+      frameIndex++;
+      const currentData = dataList[frameIndex];
+
+      speed = currentData.velocity;
+      acceleration = currentData.acceleration;
+      altitude = currentData.altitude;
+      timestamp = currentData.timestamp;
+      rotation = {
+        pitch: currentData.pitch,
+        yaw: currentData.yaw,
+        roll: currentData.roll
+      };
+
+      rocket.stTilt(rotation);
+      allParticles.forEach(p => p.animate(speed, rotation));
+      allGraphs.forEach(graph => graph.animateChart(currentData));
+      bar.animate(altitude);
+
+      lastUpdate = now;
     } else if (frameIndex >= dataList.length - 1) {
       simulationEnded = true
     }
