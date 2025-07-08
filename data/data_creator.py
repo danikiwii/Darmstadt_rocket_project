@@ -39,7 +39,7 @@ final_data = {
 
 # Guardar en la carpeta donde está el script
 script_dir = os.path.dirname(os.path.abspath(__file__))
-file_path = os.path.join(script_dir, "../docs/generated_polynomical_data.json")
+file_path = os.path.join(script_dir, "../generated_polynomical_data.json")
 
 with open(file_path, "w") as f:
     json.dump(final_data, f, indent=2)
