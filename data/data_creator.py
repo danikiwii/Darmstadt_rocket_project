@@ -1,36 +1,37 @@
 import json
 import numpy as np
 import os
+import math
 
-# Configuración del vuelo
+# Configuración
 TOTAL_TIME = 30  # segundos
-PEAK_TIME = 15   # segundos (cuando alcanza máxima altura)
+PEAK_TIME = 15   # segundos para alcanzar ~240m
 PEAK_ALTITUDE = 240  # metros
+DESCENT_RATE = 12  # m/s (velocidad de descenso con paracaídas)
 
-# Función de altitud (parte ascendente y descendente)
+# Función de altitud compuesta
 def altitude_fn(t):
     if t <= PEAK_TIME:
-        # Subida parabólica (0 a 15 segundos)
-        return (PEAK_ALTITUDE / (PEAK_TIME**2)) * t**2
+        # Ascenso exponencial (rápido al inicio)
+        return PEAK_ALTITUDE * (1 - math.exp(-t / 5))
     else:
-        # Bajada parabólica (15 a 30 segundos)
-        time_since_peak = t - PEAK_TIME
-        return PEAK_ALTITUDE - (PEAK_ALTITUDE / (PEAK_TIME**2)) * time_since_peak**2
+        # Descenso lineal controlado (paracaídas)
+        return max(0, PEAK_ALTITUDE - DESCENT_RATE * (t - PEAK_TIME))  # max(0) evita valores negativos
 
 # Generar datos
 timestamps = np.round(np.arange(0.00, TOTAL_TIME + 0.01, 0.01), 2).tolist()
-altitude = [max(0, altitude_fn(t)) for t in timestamps]  # Evitar valores negativos
+altitude = [altitude_fn(t) for t in timestamps]
 
 # Calcular velocidad y aceleración
 velocity = np.gradient(altitude, 0.01).tolist()  # m/s
 acceleration = np.gradient(velocity, 0.01).tolist()  # m/s²
 
-# Simular orientación (valores de ejemplo)
-roll = [0.1 * t if t <= PEAK_TIME else 0.1 * PEAK_TIME for t in timestamps]
-pitch = [5 * np.sin(0.2 * t) for t in timestamps]
-yaw = [2 * np.cos(0.3 * t) for t in timestamps]
+# Simular orientación (ejemplo)
+roll = [0.5 * t if t <= PEAK_TIME else 0 for t in timestamps]  # Giro durante ascenso
+pitch = [10 * math.sin(0.3 * t) for t in timestamps]  # Oscilaciones moderadas
+yaw = [5 * math.cos(0.2 * t) for t in timestamps]
 
-# Empaquetar datos
+# Guardar en JSON
 data = {
     "timestamp": timestamps,
     "altitude": altitude,
@@ -41,10 +42,8 @@ data = {
     "yaw": yaw
 }
 
-# Guardar en JSON
-file_path = os.path.join(os.path.dirname(__file__), "../rocket_flight_corrected.json")
+file_path = os.path.join(os.path.dirname(__file__), "rocket_flight_parachute.json")
 with open(file_path, "w") as f:
     json.dump({"flight_results": data}, f, indent=2)
 
 print(f"Datos guardados en {file_path}")
-
