@@ -24,6 +24,7 @@ let lastUpdate = performance.now();
 let speed = 0;
 let acceleration = 0;
 let altitude = 0;
+let maxAltitude = 0; // Para la barra de altitud
 let timestamp = 0;
 let rotation = { pitch: 0, yaw: 0, roll: 0 };
 let allParticles = [];
@@ -160,6 +161,8 @@ function animate() {
         yaw: currentData.yaw,
         roll: currentData.roll
       };
+      if (speed < 0) speed = 0; // Evitar velocidades negativas
+      if (altitude < 0) altitude = 0; // Evitar altitudes negativas
 
       rocket.stTilt(rotation);
       allParticles.forEach(p => p.animate(speed, rotation));

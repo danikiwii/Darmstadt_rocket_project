@@ -67,7 +67,7 @@ def process(samples):
 
     roll, pitch, yaw = calcular_orientacion(giroscopio, tiempo_norm)
 
-    # ⚠️ CAMBIO: ahora interpolamos con 1000 puntos
+    #  CAMBIO: ahora interpolamos con 1000 puntos
     t_interp = np.linspace(tiempo_norm[0], tiempo_norm[-1], 1000)
 
     pol_alt = ajustar_polinomio(tiempo_norm, altitudes, grado=6)
