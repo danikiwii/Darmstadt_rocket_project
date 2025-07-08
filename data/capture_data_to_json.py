@@ -32,4 +32,4 @@ def convertir_excel_a_json(ruta_excel, ruta_salida_json):
         json.dump(salida, f, indent=2)
 
 # Ejemplo de uso
-convertir_excel_a_json("rocket_log_data.xlsx", "rocket_flight_data.json")
+convertir_excel_a_json("data/rocket_log_data.xlsx", "data/rocket_flight_data.json")
