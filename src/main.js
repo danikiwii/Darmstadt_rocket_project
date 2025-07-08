@@ -19,7 +19,7 @@ rocket.load(scene);
 // Variables para la simulación
 let dataList = [];
 let frameIndex = 0;
-let simulationSpeed = 2; // 1 = tiempo real, 2 = doble de rápido, etc.
+let simulationSpeed = 1; // 1 = tiempo real, 2 = doble de rápido, etc.
 let lastUpdate = performance.now();
 let speed = 0;
 let acceleration = 0;
@@ -33,7 +33,7 @@ let bar;
 
 
 // Instanciar partículas y cargar datos
-fetch('../generated_polynomical_data.json')
+/*fetch('../result.json')
   .then(res => res.json())
   .then(json => {
     const keys = Object.keys(json.flight_results);
@@ -43,6 +43,19 @@ fetch('../generated_polynomical_data.json')
       for (const key of keys) obj[key] = json.flight_results [key][i];
       return obj;
     });
+    
+*/
+
+fetch('../processed_data_interp.json')
+  .then(res => res.json())
+  .then(json => {
+    const keys = Object.keys(json);
+    const length = json[keys[0]].length;
+    dataList = Array.from({ length }, (_, i) => {
+      const obj = {};
+      for (const key of keys) obj[key] = json [key][i];
+      return obj;
+    });    
 
     // Instanciar partículas con dataList si lo necesitas para animación basada en datos
 const rocketParticles_orange = new Particles({
@@ -109,11 +122,18 @@ const rocketParticles_gray = new Particles({
       ['rgb(255,205,86)'],
  
     );
+    const rotationChart = new AnimatedLineChart(
+      'rotationChart',
+      ['roll', 'pitch', 'yaw'],
+      ['roll (rad)', 'Pitch (rad)', 'Yaw (rad)'],
+      ['rgb(255,205,86)', 'rgb(54,162,235)', 'rgb(153,102,255)'],
+ 
+    );    
      // Atitude Bar
     bar = new AltitudeBar(  
       dataList
     );
-    allGraphs = [velocityChart, accelerationChart, altitudeChart];
+    allGraphs = [velocityChart, accelerationChart, altitudeChart, rotationChart];
 
   });
 
