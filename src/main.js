@@ -64,7 +64,7 @@ const rocketParticles_orange = new Particles({
   color: 0xffa500, // naranja brillante original
   size: 0.15,
   yRange: [-5, -4.25],
-  speedRatio: 0.002 
+  speedRatio: 0.05
 });
 const rocketParticles_yellow = new Particles({
   count: 10,
@@ -72,7 +72,7 @@ const rocketParticles_yellow = new Particles({
   color: 0xFFD580, // amarillo brillante original
   size: 0.15,
   yRange: [-6, -4.25],
-  speedRatio: 0.002
+  speedRatio: 0.05
 });
 const rocketParticles_gray = new Particles({
   count: 20,
@@ -80,7 +80,7 @@ const rocketParticles_gray = new Particles({
   color: 0xCCCCCC, // gris brillante original
   size: 0.15,
   yRange: [-10, -4.25],
-  speedRatio: 0.002
+  speedRatio: 0.05
 });
 
 
@@ -90,7 +90,7 @@ const rocketParticles_gray = new Particles({
       color: 0xffffff,
       size: 0.35,
       yRange: [-50, 50],
-      speedRatio: 1
+      speedRatio: 12
     });
     allParticles = [stars, rocketParticles_orange, rocketParticles_yellow, rocketParticles_gray];
     allParticles.forEach(particle => particle.addTo(scene));
