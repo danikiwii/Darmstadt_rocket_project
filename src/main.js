@@ -115,7 +115,7 @@ const rocketParticles_gray = new Particles({
     const rotationChart = new AnimatedLineChart(
       'rotationChart',
       ['roll', 'pitch', 'yaw'],
-      ['roll (rad)', 'Pitch (rad)', 'Yaw (rad)'],
+      ['Roll (rad)', 'Pitch (rad)', 'Yaw (rad)'],
       ['rgb(255,205,86)', 'rgb(54,162,235)', 'rgb(153,102,255)']
     )
 
