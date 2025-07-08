@@ -33,7 +33,7 @@ let bar;
 
 
 // Instanciar partículas y cargar datos
-fetch('../realistic_rocket_flight.json')
+fetch('../rocket_flight_parachute.json')
   .then(res => res.json())
   .then(json => {
     const keys = Object.keys(json.flight_results);
