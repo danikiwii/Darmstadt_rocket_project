@@ -13,6 +13,7 @@ def convertir_excel_a_json(ruta_excel, ruta_salida_json):
             "latitude": float(row["gps_lat"]),
             "longitude": float(row["gps_lon"]),
             "pressure": float(row["pressure"]),
+            "altitude": float(row["altitude"]),
             "acceleration": {
                 "x": float(row["accel_x"]),
                 "y": float(row["accel_y"]),
