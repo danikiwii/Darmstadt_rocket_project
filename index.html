@@ -10,7 +10,6 @@
     #weather-info {
       position: absolute;
       top: 20px;
-      right: 910px;
       background: rgba(0, 0, 0, 0.6);
       color: #fff;
       padding: 10px 15px;
@@ -46,7 +45,6 @@
 
     <div id="interface">
       <div id="charts">
-        <!-- Aquí puedes colocar gráficos, datos, etc. -->
         <canvas id="speedChart"></canvas>
         <canvas id="accelerationChart"></canvas>
         <canvas id="altitudeChart"></canvas>
@@ -55,7 +53,7 @@
     </div>
   </div>
 
-  <!-- Carga Chart.js como script global UMD antes de tus módulos -->
+  <!-- Carga Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <script type="importmap">

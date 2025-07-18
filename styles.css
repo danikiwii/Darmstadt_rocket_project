@@ -143,4 +143,80 @@ html, body {
 }
 
 
+@media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: auto;
+  }
 
+  #container {
+    flex-direction: column;
+    width: 100vw;
+    height: auto;
+    overflow-y: visible;
+  }
+
+  #simulation {
+    width: 100%;
+    height: 60vh;
+    flex: none;
+    position: relative;
+  }
+
+  #three-canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  #altitude-bar-container {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 200px;
+  }
+
+  #altitude-bar {
+    height: 160px;
+  }
+
+  #altitude-bar-fill {
+    max-height: 160px;
+  }
+
+  #altitude-label {
+    font-size: 0.8rem;
+  }
+
+  #weather-info {
+    top: 10px;
+    right: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    backdrop-filter: blur(6px);
+    border-radius: 12px;
+  }
+
+  #interface {
+    width: 100%;
+    padding: 1rem;
+    box-sizing: border-box;
+  }
+
+  #charts {
+    width: 100%;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: visible;
+  }
+
+  #charts canvas {
+    width: 100% !important;
+    height: 220px !important;
+    margin-bottom: 2rem;
+  }
+}
