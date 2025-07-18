@@ -36,7 +36,7 @@ fetch('./data/weather_data.json')
   })
   .catch(console.error)
 
-fetch('../processed_data_interp.json')
+fetch('./processed_data_interp.json')
   .then(res => res.json())
   .then(json => {
     const keys = Object.keys(json)
