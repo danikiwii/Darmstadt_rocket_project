@@ -1,3 +1,4 @@
+/* RESET GENERAL */
 * {
   margin: 0;
   padding: 0;
@@ -13,6 +14,7 @@ html, body {
   overflow: hidden;
 }
 
+/* CONTENEDOR PRINCIPAL */
 #container {
   display: flex;
   flex-direction: row;
@@ -20,6 +22,7 @@ html, body {
   position: relative;
 }
 
+/* SIMULACIÓN THREE.JS */
 #simulation {
   flex: 2;
   display: flex;
@@ -28,6 +31,7 @@ html, body {
   background: #111;
 }
 
+/* PANEL DE INTERFAZ */
 #interface {
   flex: 2;
   background: #222;
@@ -37,30 +41,29 @@ html, body {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
 }
 
+/* CHARTS CORREGIDOS */
 #charts {
-  width: 100%;
-  height: 100%;
-  max-height: 95vh;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   overflow-y: auto;
-  padding-left: 2.5rem;
-  padding-right: 2.5rem;
-  box-sizing: border-box;
+  padding: 0 2.5rem 4rem;
 }
 
+/* CANVAS DENTRO DE CHARTS */
 #charts canvas {
-  width: 100% !important;
-  height: 320px !important;
-  min-height: 200px;
+  width: 100%;
+  height: auto;
+  min-height: 220px;
   margin-bottom: 3.5rem;
+  scroll-margin-bottom: 100px;
   box-sizing: border-box;
 }
 
+/* LIENZO PRINCIPAL THREE.JS */
 #three-canvas {
   width: 100%;
   height: 100%;
@@ -68,7 +71,7 @@ html, body {
   background: #000;
 }
 
-
+/* BARRA DE ALTITUD */
 #altitude-bar-container {
   position: absolute;
   left: 40px;
@@ -86,14 +89,12 @@ html, body {
   box-shadow: 0 0 8px #00c3ff33;
 }
 
-
 #altitude-bar {
   width: 24px;
   height: 320px;
   background: #222;
   border-radius: 10px;
   box-shadow: 0 0 8px #00c3ff99;
-  margin: 0 auto;
   display: flex;
   align-items: flex-end;
   justify-content: flex-end;
@@ -110,11 +111,10 @@ html, body {
   position: absolute;
   left: 0;
   bottom: 0;
-  height: 20px; /* valor inicial, se actualizará por JS */
+  height: 20px;
   min-height: 20px;
   max-height: 320px;
 }
-
 
 #altitude-label {
   width: 100%;
@@ -123,9 +123,9 @@ html, body {
   color: #fff;
   font-size: 1rem;
   text-shadow: 0 0 4px #000;
-  position: static;
 }
 
+/* INFORMACIÓN METEOROLÓGICA */
 #weather-info {
   position: absolute;
   top: 20px;
@@ -134,15 +134,14 @@ html, body {
   color: #f0f0f0;
   padding: 12px 18px;
   border-radius: 16px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 15px;
   line-height: 1.4;
   z-index: 10;
   box-shadow: 0 0 10px #00c3ff33;
-  backdrop-filter: blur(6px); /* suaviza el fondo sin añadir color */
+  backdrop-filter: blur(6px);
 }
 
-
+/* VERSIÓN MÓVIL */
 @media (max-width: 768px) {
   html, body {
     overflow-x: hidden;
@@ -154,13 +153,11 @@ html, body {
     flex-direction: column;
     width: 100vw;
     height: auto;
-    overflow-y: visible;
   }
 
   #simulation {
     width: 100%;
     height: 60vh;
-    flex: none;
     position: relative;
   }
 
@@ -170,10 +167,7 @@ html, body {
   }
 
   #altitude-bar-container {
-    position: absolute;
     left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
     width: 40px;
     height: 200px;
   }
@@ -186,8 +180,11 @@ html, body {
     max-height: 160px;
   }
 
-  #altitude-label {
+   #altitude-label {
     font-size: 0.8rem;
+    white-space: nowrap;       /* Evita que el número y la "m" se separen */
+    padding: 0 6px;             /* Añade espacio interno para que no se corte */
+    min-width: 60px;            /* Evita que el contenedor se achique demasiado */
   }
 
   #weather-info {
@@ -195,28 +192,23 @@ html, body {
     right: 10px;
     padding: 10px 14px;
     font-size: 13px;
-    backdrop-filter: blur(6px);
     border-radius: 12px;
   }
 
   #interface {
     width: 100%;
     padding: 1rem;
-    box-sizing: border-box;
+    padding-bottom: 4rem;
   }
 
   #charts {
-    width: 100%;
+    flex: none;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    overflow: visible;
+    overflow-y: visible;
   }
 
   #charts canvas {
-    width: 100% !important;
-    height: 220px !important;
+    height: 220px;
     margin-bottom: 2rem;
   }
 }

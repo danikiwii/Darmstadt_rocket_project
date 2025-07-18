@@ -19,7 +19,8 @@ export class AltitudeBar {
     const percent = Math.max(0, Math.min(altitude / this.maxAltitude, 1));
     const fillHeight = this.minHeight + percent * (this.maxHeight - this.minHeight);
     this.altitudeBarFill.style.height = fillHeight + 'px';
-    this.altitudeLabel.textContent = altitude.toFixed(1) + ' m';
+    this.altitudeLabel.textContent = Math.round(altitude) + ' m';
+
   }
 }
 
