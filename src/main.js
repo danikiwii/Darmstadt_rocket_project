@@ -25,7 +25,7 @@ let allGraphs = []
 let bar
 let simulationEnded = false
 
-fetch('../data/weather_data.json')
+fetch('./data/weather_data.json')
   .then(r => r.json())
   .then(d => {
     const w = Array.isArray(d) ? d[0] : d
